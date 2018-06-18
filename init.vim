@@ -6,25 +6,13 @@ call plug#begin('~/.nvim/plugged')
   " Make sure you use single quotes
   " Add or remove your plugins here:
   Plug 'Valloric/YouCompleteMe'
-  "
-  " Plug 'Shougo/deoplete.nvim'
-  " Plug 'tweekmonster/deoplete-clang2'
-  Plug 'w0rp/ale', {'for': ['xml']}
+  Plug 'mhartington/oceanic-next'
+
+  Plug 'w0rp/ale', {'for': ['xml', 'reqm', 'xdm', 'arxml', 'xdm.m4', 'reqm.m4', 'arxml.m4']}
   Plug 'cocopon/vaffle.vim' " file manager
   Plug 'gcmt/taboo.vim' " rename tabs
   Plug 'Konfekt/vim-CtrlXA'
-  " Plug 'autozimu/LanguageClient-neovim', {     'branch': 'master', 'for': ['c', 'xml', 'm4', 'h', 'c.m4', 'h.m4']}
-  Plug 'autozimu/LanguageClient-neovim', {     'branch': 'next'}
-  " Plug 'autozimu/LanguageClient-neovim', {     'branch': 'next',  'do': 'powershell -executionpolicy bypass -File install.ps1', 'for': ['c', 'xml', 'm4', 'h', 'c.m4', 'h.m4']}
-  " Plug 'autozimu/LanguageClient-neovim/tree/master'
   Plug 'justinmk/vim-syntax-extra'
-  " Plug 'ludovicchabant/vim-gutentags'
-  " Plug 'majutsushi/tagbar'
- 
-  " Plug 'prabirshrestha/async.vim'
-  " Plug 'prabirshrestha/vim-lsp'
-  " Plug 'natebosch/vim-lsc'
-  " Plug 'pdavydov108/vim-lsp-cquery'
 
   " Plug 'vim-latex/vim-latex', {'for': ['tex', 'latex']}
 
@@ -69,7 +57,13 @@ if has("win32")
 endif
 
 syntax on
-colorscheme Spacegray
+" colorscheme Spacegray
+colorscheme oceanicnext
+if (has("termguicolors"))
+ set termguicolors
+ let $NVIM_TUI_ENABLE_TRUE_COLOR=1
+ let &t_8b="\e[48;2;%ld;%ld;%ldm"
+endif
 
 set encoding=utf-8
 scriptencoding utf-8
@@ -184,10 +178,6 @@ set title
 
 let &errorformat="%f:%l:%c: %t%*[^:]:%m,%f:%l: %t%*[^:]:%m," . &errorformat
 
-set termguicolors
-let $NVIM_TUI_ENABLE_TRUE_COLOR=1
-let &t_8b="\e[48;2;%ld;%ld;%ldm"
-
 " C stuff
 set cino+=(0             "Align paramater lists after newline under '('
 
@@ -290,6 +280,7 @@ nmap <silent> <S-l> :vertical resize +5<CR>
 nmap <silent> <S-h> :vertical resize -5<CR>
 
 " go to previous visited locations
+nmap <silent> <C-t>  <C-o>
 nmap <silent> <A-Left>  <C-o>
 nmap <silent> <A-Right> <C-i>
 
@@ -346,7 +337,7 @@ au FileType qf set nowrap
 augroup project
   autocmd!
   autocmd BufRead,BufNewFile *.h,*.c,*.c.m4,*.h.m4 set filetype=c
-  " autocmd BufRead,BufNewFile,WinEnter *.h,*.c,*.c.m4,*.h.m4 call SetCompOpt()
+  autocmd BufEnter,BufRead,BufNewFile *.h,*.c,*.c.m4,*.h.m4 call lightline#update()
   autocmd BufRead,BufNewFile *.xdm,*.xdm.m4,*.arxml.m4,*xml.m4 set filetype=xml
 augroup END
 
@@ -416,94 +407,6 @@ augroup END
 
 " {{{ Plugin settings
 
-" -----------Language server protocol-----------
-" if executable('cquery')
-"    au User lsp_setup call lsp#register_server({
-"       \ 'name': 'cquery',
-"       \ 'cmd': {server_info->['cquery']},
-"       \ 'root_uri': {server_info->lsp#utils#path_to_uri(lsp#utils#find_nearest_parent_file_directory(lsp#utils#get_buffer_path(), 'compile_commands.json'))},
-"       \ 'initialization_options': { 'cacheDirectory': userProfile.'/vim_undo/cache' },
-"       \ 'whitelist': ['c', 'cpp', 'objc', 'objcpp', 'cc'],
-"       \ })
-"    let g:lsp_log_file = userProfile.'/cache/vim-lsp.log'
-" endif
-
-" if executable('clangd')
-"     au User lsp_setup call lsp#register_server({
-"         \ 'name': 'clangd',
-"         \ 'cmd': {server_info->['clangd']},
-"         \ 'whitelist': ['c', 'cpp', 'objc', 'objcpp'],
-"         \ })
-" endif
-" let g:lsc_server_commands = {
-"    \ 'c': {
-"    \    'command': 'clangd',
-"    \    'message_hooks': {
-"    \        'initialize': {
-"    \            'initializationOptions': {'foo': 'bar'},
-"    \        },
-"    \        'textDocument/didOpen': {'metadata': {'extraFlags': ['-Wall', '-IC:\\MinGW\\include', '-I.']}},
-"    \    },
-"    \  },
-"    \}
-" }}}
-
-
-" -----------Latex-----------
-" let g:vimtex_fold_enabled = 0
-" let g:Tex_Folding = 0
-
-" -----------Gutentags-----------
-" let g:gutentags_ctags_exclude = ['build']
-" let g:gutentags_project_root=['.svn', 'META-INF', 'plugin.xml', 'util', 'current.mk']
-
-" " let g:gutentags_gtags_options_file=userProfile."/ctags.cnf"
-
-" let g:gutentags_ctags_extra_args = []
-" let g:gutentags_ctags_extra_args += ['-D "FUNC(rettype, memclass) rettype"']
-" let g:gutentags_ctags_extra_args += ['-D "VAR(vartype, memclass) vartype"']
-" let g:gutentags_ctags_extra_args += ['-D "CONST(vartype, memclass) vartype"']
-" let g:gutentags_ctags_extra_args += ['-D "CONSTP2FUNC(rettype, ptrclass, fctname) rettype (* const fctname)"']
-" let g:gutentags_ctags_extra_args += ['-D "P2FUNC(rettype, ptrclass, fctname) rettype (* fctname) ptrclass"']
-" let g:gutentags_ctags_extra_args += ['-D "CONSTP2CONST(ptrtype, memclass, ptrclass) ptrtype const * const ptrclass"']
-" let g:gutentags_ctags_extra_args += ['-D "CONSTP2VAR(ptrtype, memclass, ptrclass) ptrtype * const ptrclass"']
-" let g:gutentags_ctags_extra_args += ['-D "P2CONST(ptrtype, memclass, ptrclass) ptrtype const * ptrclass"']
-" let g:gutentags_ctags_extra_args += ['-D "P2VAR(ptrtype, memclass, ptrclass) ptrtype * ptrclass"']
-" let g:gutentags_ctags_extra_args += ['-D "FUNC_P2VAR(rettype, ptrclass, memclass) rettype *"']
-" let g:gutentags_ctags_extra_args += ['-D "FUNC_P2CONST(rettype, ptrclass, memclass) const rettype *"']
-
-" " Gutentags -- write tags files to this folder:
-" " let g:gutentags_cache_dir = userProfile.'/vim_undo/tags'
-
-" ------------Deoplete------------
-"let g:deoplete#enable_at_startup = 1
-
-"let g:deoplete#sources#clang#executable = "C:/Program Files/LLVM/bin/clang.exe"
-
-"" Close the documentation window when completion is done
-"autocmd InsertLeave,CompleteDone * if pumvisible() == 0 | pclose | endif
-"" autocmd CmdwinEnter * let b:deoplete_sources = ['buffer']
-"let g:deoplete_sources = ['buffer', 'member', 'file', 'dictionary', 'around', 'omni']
-"call deoplete#custom#source('_', 'matchers', ['matcher_full_fuzzy'])
-
-"let g:clang_complete_auto = 0
-"let g:clang_auto_select = 0
-"let g:clang_omnicppcomplete_compliance = 0
-"let g:clang_make_default_keymappings = 0
-""let g:clang_use_library = 1
-
-"if has("win32")
-"" maybe someday
-"" let g:deoplete#sources#clang#libclang_path="C:/Program Files/LLVM/lib/libclang.lib"
-"" let g:deoplete#sources#clang#clang_header="C:/Program Files/LLVM/lib/clang"
-"" let g:deoplete#sources#clang#flags = [
-""       \ '-isystem',
-""       \ 'C:/IncC',
-""       \ '-DTS_ARCH_FAMILY=TS_WINDOWS',
-""       \ '-DTS_ARCH_DERIVATE=TS_WIN32X86',
-""       \ ]
-"endif
-"
 " -----------Youcompleteme-------------
 if has("win32")
 let g:ycm_server_python_interpreter = 'C:/Python27/python.exe'
@@ -512,63 +415,50 @@ let g:ycm_confirm_extra_conf = 0
 let g:ycm_min_num_of_chars_for_completion = 3
 let g:ycm_complete_in_strings = 1
 let g:ycm_autoclose_preview_window_after_insertion = 1
-let g:ycm_autoclose_preview_window_after_completion = 1
+let g:ycm_autoclose_preview_window_after_completion = 0
 let g:ycm_semantic_triggers = {
       \     'c,cpp,objcpp' : 're![a-zA-Z_]',
       \ }
 " TODO: ignore some of the files. eg. os
-" TODO: adapt SetCompOpt for ycm
 
+nmap <silent> <C-]> :YcmCompleter GoTo<cr>
 nmap <silent> gd :YcmCompleter GoTo<cr>
 nmap <silent> gt :YcmCompleter GetType<cr>
 nmap <silent> gf :YcmCompleter GetParent<cr>
 nmap <silent> gr :YcmCompleter FixIt<cr>
 nmap <silent> gD :YcmCompleter GetDoc<cr>
 
-" let g:ycm_global_ycm_extra_conf = '~/.ycm_extra_conf.py'
-
-" Ale works faster? (not necessarily, investigate deeper)
-" let g:ycm_show_diagnostics_ui = 0
-
-" -----------Ale-----------
-let g:ale_set_quickfix = 0
-
-let g:ale_linters = {
-\   'c': ['gcc'],
-\   'xml': ['xmllint'],
-\}
-
-" if has("win32")
-" let g:ale_c_gcc_options = "-c -pipe -std=iso9899:199409 -ffreestanding -pedantic -Wall -Wextra -Winit-self -Wswitch-default -Wunused-parameter -Wunused-label -Wunused-variable -Wunknown-pragmas -Wstrict-aliasing=3 -Wstrict-overflow=2 -Warray-bounds=1 -Wduplicated-cond -Wtrampolines -Wstack-usage=500 -Wjump-misses-init -Wsign-conversion -Wfloat-conversion -Wno-aggressive-loop-optimizations -fno-sanitize-recover -fsanitize=undefined -fsanitize=shift -fsanitize=integer-divide-by-zero -fsanitize=vla-bound -fsanitize=null -fsanitize=signed-integer-overflow -fsanitize=bounds -fsanitize=bounds-strict -fsanitize=alignment -fsanitize=object-size -fsanitize=float-divide-by-zero -fsanitize=float-cast-overflow -fsanitize=bool -fsanitize-undefined-trap-on-error -fstack-protector-strong -Wfloat-equal -Wdeclaration-after-statement -Wundef -Wno-endif-labels -Wshadow -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Wdouble-promotion -Wnull-dereference -Wshift-negative-value -Wshift-overflow -Wunused-const-variable=2 -Wuninitialized   -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wnested-externs -Wvla -Wvolatile-register-var -Wparentheses -Wjump-misses-init -g -Os -fno-strict-aliasing -ftree-vrp -DNOGDI -D_X86_ -D_WIN32X86_C_GCC_  -DCOMPILERCFG_EXTENSION_FILE=Compiler_CfgExt.h -DTS_ARCH_FAMILY=TS_WINDOWS -DTS_ARCH_DERIVATE=TS_WIN32X86 -DATOMICS_USE_GENERIC_IMPL=0 -DOS_KERNEL_TYPE=OS_SYSTEM_CALL -DOS_USE_TRACE=0 -DOS_DEVELOPMENT_SANITY_CHECKS=0 -DOS_MEMMAP=0 -DOS_N_CORES=1 -DOS_SCHEDULING_ALGORITHM=OS_CLZ_QUEUE -DOS_INITCORE=0 -DOS_NPERCORE_RESOURCES=0 -DOS_CPU=OS_WIN32X86 -DOS_TOOL=OS_gnu -DOS_ARCH=OS_WINDOWS -DOS_RELEASE_SUFFIX=OS_AS403 -DOS_USE_POSIX_SIGNALS_FOR_THREAD_CONTROL=0 -D_WIN32_WINNT=0x0601 -DWINVER=0x0601 -DOS_ARCH_HAS_64BIT=0 -IC:\\IncC"
-" let g:ale_c_gcc_executable = "C:/mingw64/bin/gcc.exe"
-" endif
-
-
-" -----------LanguageClient-----------
-" let g:LanguageClient_serverCommands = {
-"     \ 'c': ['clangd']
-"     \ }
-
-if has("win32")
-  let g:LanguageClient_serverCommands = {
-        \ 'c': ['c:/MinGW/bin/cquery.exe', '--language-server','--log-stdin-stdout-to-stderr', '--log-file=C:/Temp/cq.log']
-        \ }
-  let g:LanguageClient_serverCommands = {
-        \   'c': ['-IC:/MinGW/include']
-        \ }
-  let g:LanguageClient_autoStart = 1
-  let g:LanguageClient_trace = 'verbose'
-endif
-
 " -----------Lightline-----------
+if exists('g:gui_oni')
 let g:lightline = {
-      \ 'colorscheme': 'hybrid',
       \ 'active': {
       \ 'left': [ [ 'mode', 'paste' ],
       \           [ 'readonly', 'filename', 'modified' ] ],
       \   'right': [ [ 'lineinfo' ],
-      \              [ 'percent' ],
+      \              [ 'percent', 'warn', 'errors' ],
       \              [ 'charvaluehex', 'fileformat', 'fileencoding', 'filetype' ] ]
+      \ },
+      \ 'component_function': {
+      \   'errors': 'LightlineLinterErrors',
+      \   'warn': 'LightlineLinterWarnings',
+      \ },
+      \ }
+else
+endif
+let g:lightline = {
+      \ 'colorscheme': 'oceanicnext',
+      \ 'separator': { 'left': "\uE0B0", 'right': "\uE0B2" },
+      \ 'subseparator': { 'left': "\uE0B1", 'right': "\uE0B3" },
+      \ 'active': {
+      \ 'left': [ [ 'mode', 'paste' ],
+      \           [ 'readonly', 'filename', 'modified' ] ],
+      \   'right': [ [ 'lineinfo' ],
+      \              [ 'percent', 'warn', 'errors' ],
+      \              [ 'charvaluehex', 'fileformat', 'fileencoding', 'filetype' ] ]
+      \ },
+      \ 'component_function': {
+      \   'errors': 'LightlineLinterErrors',
+      \   'warn': 'LightlineLinterWarnings',
       \ },
       \ }
 
@@ -577,13 +467,16 @@ let g:lightline.tab = {
     \ 'inactive': [ 'tabnum', 'filename', 'modified' ],
     \ 'right': [ [ 'close', 'percent' ] ] }
 
-let g:lightline = {
-  \ 'separator': { 'left': "\uE0B0", 'right': "\uE0B2" },
-  \ 'subseparator': { 'left': "\uE0B1", 'right': "\uE0B3" }
-  \ }
-function! LightlineReadonly()
-  return &readonly ? '¿' : ''
+function! LightlineLinterWarnings() abort
+  let l:counts = youcompleteme#GetWarningCount()
+  return l:counts == 0 ? '' : printf('%d Warnings', l:counts)
 endfunction
+
+function! LightlineLinterErrors() abort
+  let l:counts = youcompleteme#GetErrorCount()
+  return l:counts == 0 ? '' : printf('%d Errors', l:counts)
+endfunction
+
 
 " -----------Signify-----------
 " let g:signify_disable_by_default = 0
@@ -622,10 +515,9 @@ let s:easy_align_delimiters = {
 \ }
 
 " -----------Ag-----------
-let g:ag_prg="rg -H -S --vimgrep --ignore-file $HOME\ignore"
+let g:ag_prg='rg -H -S --vimgrep --ignore-file '.userProfile.'/ignore'
 " " let g:ag_prg="sift -n"
 let g:ag_highlight=1
-" let g:ag_format="%f:%l:%m"
 let g:ag_format="%f:%l:%c:%m"
 let g:ag_working_path_mode='r'
 
@@ -661,6 +553,15 @@ function! ToggleColorColumn()
         setlocal colorcolumn=100
     endif
 endfunction
+
+function! ToggleYCM()
+    if g:ycm_auto_trigger != 0
+        let g:ycm_auto_trigger=0
+    else
+        let g:ycm_auto_trigger=1
+    endif
+endfunction
+nnoremap <leader>y :call ToggleYCM()<CR>
 
 " toggle between number and relativenumber
 function! ToggleNumber()
@@ -751,19 +652,6 @@ function! DecAndHex(number)
      echo "NaN"
   endif
 endfunction
-
-" " show the current funtion name
-" fun! ShowFuncName()
-"   let lnum = line(".")
-"   let col = col(".")
-"   echohl ModeMsg
-"   let funcLine = getline(search("^[^ \t#/]\\{2}.*[^:]\s*$", 'bW'))
-"   echo funcLine
-"   " line number
-"   let x = search("\\%" . lnum . "l" . "\\%" . col . "c")
-"   echohl None
-" endfun
-" map gf :call ShowFuncName() <CR>
 
 function! ToggleVerbose()
     if !&verbose
