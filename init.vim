@@ -1,26 +1,32 @@
 " {{{ Plugins
+"
+let g:configForWork = 0
 " set runtimepath+=$HOME\.nvim\plugged
 " Specify a directory for plugins (for Neovim: ~/.local/share/nvim/plugged)
 call plug#begin('~/.nvim/plugged')
 
   " Make sure you use single quotes
   " Add or remove your plugins here:
+if (g:configForWork == 1)
   Plug 'Valloric/YouCompleteMe'
-  Plug 'mhartington/oceanic-next'
-
   Plug 'w0rp/ale', {'for': ['xml', 'reqm', 'xdm', 'arxml', 'xdm.m4', 'reqm.m4', 'arxml.m4']}
+
+  " Plug 'vim-latex/vim-latex', {'for': ['tex', 'latex']}
+endif
+
+  Plug 'gregsexton/VimCalc', {'on': 'Calc'}
+
+  Plug 'ajh17/Spacegray.vim'
+
   Plug 'cocopon/vaffle.vim' " file manager
   Plug 'gcmt/taboo.vim' " rename tabs
   Plug 'Konfekt/vim-CtrlXA'
   Plug 'justinmk/vim-syntax-extra'
-
-  " Plug 'vim-latex/vim-latex', {'for': ['tex', 'latex']}
+  Plug 'tpope/vim-speeddating'
 
   Plug 'Shougo/vinarise.vim'
   Plug 'ryanoasis/vim-devicons'
-
-  Plug 'gregsexton/VimCalc', {'on': 'Calc'}
-  Plug 'ajh17/Spacegray.vim'
+  Plug 't9md/vim-quickhl'
 
   Plug 'octol/vim-cpp-enhanced-highlight', {'for': ['c', 'cpp']}
   Plug 'justinmk/vim-syntax-extra', {'for': ['c', 'cpp']}
@@ -34,7 +40,7 @@ call plug#begin('~/.nvim/plugged')
   Plug 'ctrlpvim/ctrlp.vim'
   Plug 'kshenoy/vim-signature'                 " bookmark management
   Plug 'tpope/vim-commentary'
-  Plug 'tmhedberg/matchit'                     " extends %
+  Plug 'andymass/vim-matchup'                     " extends %
   Plug 'itchyny/lightline.vim'
   Plug 'AndrewRadev/linediff.vim'
   Plug 'mbbill/undotree'
@@ -46,7 +52,7 @@ call plug#end()
 
 " {{{ Editior settings
 
-if has("win32")
+if (has("win32") && (g:configForWork == 1))
   let userProfile = substitute($USERPROFILE,'\\','/','g')
 
   " Work specific things
@@ -57,8 +63,7 @@ if has("win32")
 endif
 
 syntax on
-" colorscheme Spacegray
-colorscheme oceanicnext
+colorscheme Spacegray
 if (has("termguicolors"))
  set termguicolors
  let $NVIM_TUI_ENABLE_TRUE_COLOR=1
@@ -196,17 +201,18 @@ nnoremap <Leader>do :diffoff<CR>
 nnoremap <Leader>dp :diffput<CR>
 nnoremap <Leader>dg :diffget<CR>
 nnoremap <Leader>du :diffupdate<CR>
-nnoremap <Leader>e  :Ag!  <C-R>=GetProj(2)<CR><C-Left><C-Left><C-Left><C-Left><C-Right><Right>
-nnoremap <Leader>r  :Ag! <C-R><C-W> <C-R>=GetProj(2)<CR><C-Left><C-Left><C-Left><C-Left><C-Right><Right><CR>
 nnoremap <Leader>m  :CtrlPMRUFiles<CR>
-nnoremap <Leader>n  :CtrlP <C-R>=GetProj(2)<CR><CR>
 nnoremap <Leader>st :call StripTrailingWhitespaces()<cr>
 nnoremap <Leader>sw :set wrap!<CR>
 nnoremap <Leader>tc :tabclose<CR>
 nnoremap <Leader>tn :tabnew<CR>
 nnoremap <silent><Leader>/ :nohlsearch<CR>
 nnoremap <silent><Leader>c :call ToggleColorColumn()<CR>
-if has("win32")
+if (has("win32") && (g:configForWork == 1))
+nnoremap <Leader>e  :Ag!  <C-R>=GetProj(2)<CR><C-Left><C-Left><C-Left><C-Left><C-Right><Right>
+nnoremap <Leader>r  :Ag! <C-R><C-W> <C-R>=GetProj(2)<CR><C-Left><C-Left><C-Left><C-Left><C-Right><Right><CR>
+nnoremap <Leader>n  :CtrlP <C-R>=GetProj(2)<CR><CR>
+nnoremap <silent> <Leader>nn :call GetStep()<Left>
 nnoremap <silent><Leader>sL :w<CR>:silent !start TortoiseProc.exe /command:log /path:<C-R>=GetProj(2)<CR> /notempfile /closeonend<CR>
 nnoremap <silent><Leader>sb :w<CR>:silent !start TortoiseProc.exe /command:blame /path:% /notempfile /closeonend<CR>
 nnoremap <silent><Leader>sc :w<CR>:silent !start TortoiseProc.exe /command:commit /path:<C-R>=GetProj(2)<CR> /notempfile /closeonend<CR>
@@ -228,11 +234,10 @@ nnoremap <silent><leader>S z=
 nnoremap <silent><leader>s :set spell!<CR>
 
 vmap <Leader>ld :Linediff<CR>
-nnoremap <silent> <Leader>nn :call GetStep()<Left>
 vmap ;' V'<O#if 0<Esc>'>o#endif<Esc>
 nnoremap <C-s> :w<CR>
 
-if has("win32")
+if (has("win32") && (g:configForWork == 1))
 map <C-F> :pyf C:\Program Files\LLVM\share\clang\clang-format.py<cr>
 imap <C-F> <c-o>:pyf C:\Program Files\LLVM\share\clang\clang-format.py<cr>
 endif
@@ -291,8 +296,10 @@ nnoremap [b :bprevious<CR>
 nnoremap ]t :tabnext<CR>
 nnoremap [t :tabprevious<CR>
 
-" nnoremap ]l :ALENext<CR>
-" nnoremap [l :ALEPrevious<CR>
+if (g:configForWork == 1)
+nnoremap ]l :ALENext<CR>
+nnoremap [l :ALEPrevious<CR>
+endif
 
 map <C-Down> ]c
 map <C-Up> [c
@@ -305,7 +312,7 @@ nmap < <<
 " F* mappings
 nnoremap <F2> :cprevious<CR>
 nnoremap <F3> :cnext<CR>
-if has("win32")
+if (has("win32") && (g:configForWork == 1))
 nnoremap <F6> :silent !C:\totalcmd\TOTALCMD64.EXE /O <C-R>=getcwd()<CR><CR>
 endif
 nnoremap <F5> :silent !start cmd<CR>
@@ -325,6 +332,10 @@ map ; :
 
 " Remap VIM 0 to first non-blank character
 map 0 ^
+nmap <Space>. <Plug>(quickhl-manual-this)
+xmap <Space>. <Plug>(quickhl-manual-this)
+nmap <Space>> <Plug>(quickhl-manual-reset)
+xmap <Space>> <Plug>(quickhl-manual-reset)
 
 " }}}
 
@@ -403,14 +414,18 @@ augroup FileChangedAlert
   autocmd! FileChangedShell * echoerr "File has been changed outside of Vim."
 augroup END
 
+autocmd! bufwritepost init.vim source %
+
 " }}}
 
 " {{{ Plugin settings
+" -----------MatchUp-------------
+hi MatchParen cterm=italic gui=italic
+" let b:match_words.= '\<IF\>:\<ENDIF\>,\<LOOP\>:\<ENDLOOP\>,\<FOR\>:\<ENDFOR\>,'
 
 " -----------Youcompleteme-------------
-if has("win32")
+if (has("win32") && (g:configForWork == 1))
 let g:ycm_server_python_interpreter = 'C:/Python27/python.exe'
-endif
 let g:ycm_confirm_extra_conf = 0
 let g:ycm_min_num_of_chars_for_completion = 3
 let g:ycm_complete_in_strings = 1
@@ -419,14 +434,14 @@ let g:ycm_autoclose_preview_window_after_completion = 0
 let g:ycm_semantic_triggers = {
       \     'c,cpp,objcpp' : 're![a-zA-Z_]',
       \ }
-" TODO: ignore some of the files. eg. os
 
-nmap <silent> <C-]> :YcmCompleter GoTo<cr>
-nmap <silent> gd :YcmCompleter GoTo<cr>
-nmap <silent> gt :YcmCompleter GetType<cr>
-nmap <silent> gf :YcmCompleter GetParent<cr>
-nmap <silent> gr :YcmCompleter FixIt<cr>
-nmap <silent> gD :YcmCompleter GetDoc<cr>
+autocmd FileType c nnoremap <buffer> <C-]> :YcmCompleter GoTo<cr>
+autocmd FileType c nnoremap <buffer> <silent> gd :YcmCompleter GoTo<cr>
+autocmd FileType c nnoremap <buffer> <silent> gt :YcmCompleter GetType<cr>
+autocmd FileType c nnoremap <buffer> <silent> gf :YcmCompleter GetParent<cr>
+autocmd FileType c nnoremap <buffer> <silent> gr :YcmCompleter FixIt<cr>
+autocmd FileType c nnoremap <buffer> <silent> gD :YcmCompleter GetDoc<cr>
+endif
 
 " -----------Lightline-----------
 if exists('g:gui_oni')
@@ -446,7 +461,7 @@ let g:lightline = {
 else
 endif
 let g:lightline = {
-      \ 'colorscheme': 'oceanicnext',
+      \ 'colorscheme': 'Spacegray',
       \ 'separator': { 'left': "\uE0B0", 'right': "\uE0B2" },
       \ 'subseparator': { 'left': "\uE0B1", 'right': "\uE0B3" },
       \ 'active': {
@@ -467,6 +482,7 @@ let g:lightline.tab = {
     \ 'inactive': [ 'tabnum', 'filename', 'modified' ],
     \ 'right': [ [ 'close', 'percent' ] ] }
 
+if (has("win32") && (g:configForWork == 1))
 function! LightlineLinterWarnings() abort
   let l:counts = youcompleteme#GetWarningCount()
   return l:counts == 0 ? '' : printf('%d Warnings', l:counts)
@@ -476,7 +492,7 @@ function! LightlineLinterErrors() abort
   let l:counts = youcompleteme#GetErrorCount()
   return l:counts == 0 ? '' : printf('%d Errors', l:counts)
 endfunction
-
+endif
 
 " -----------Signify-----------
 " let g:signify_disable_by_default = 0
@@ -554,14 +570,20 @@ function! ToggleColorColumn()
     endif
 endfunction
 
+if (has("win32") && (g:configForWork == 1))
 function! ToggleYCM()
     if g:ycm_auto_trigger != 0
         let g:ycm_auto_trigger=0
+        let g:ycm_echo_current_diagnostic=0
+        echom "Disabled YCM"
     else
         let g:ycm_auto_trigger=1
+        let g:ycm_echo_current_diagnostic=1
+        echom "Enabled YCM"
     endif
 endfunction
 nnoremap <leader>y :call ToggleYCM()<CR>
+endif
 
 " toggle between number and relativenumber
 function! ToggleNumber()
