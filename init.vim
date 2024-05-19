@@ -1,84 +1,554 @@
-" {{{ Plugins
-"
-let g:configForWork = 0
-" set runtimepath+=$HOME\.nvim\plugged
-" Specify a directory for plugins (for Neovim: ~/.local/share/nvim/plugged)
-call plug#begin('~/.nvim/plugged')
-
-  " Make sure you use single quotes
-  " Add or remove your plugins here:
-if (g:configForWork == 1)
-  Plug 'Valloric/YouCompleteMe'
-  Plug 'w0rp/ale', {'for': ['xml', 'reqm', 'xdm', 'arxml', 'xdm.m4', 'reqm.m4', 'arxml.m4']}
-
-  " Plug 'vim-latex/vim-latex', {'for': ['tex', 'latex']}
+if has("win32")
+let g:configForWork = 1
 endif
 
-  Plug 'gregsexton/VimCalc', {'on': 'Calc'}
+" {{{ Plugins func
 
-  Plug 'ajh17/Spacegray.vim'
+lua << EOF
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not (vim.uv or vim.loop).fs_stat(lazypath) then
+  vim.fn.system({
+    "git",
+    "clone",
+    "--filter=blob:none",
+    "https://github.com/folke/lazy.nvim.git",
+    "--branch=stable", -- latest stable release
+    lazypath,
+  })
+end
+vim.opt.rtp:prepend(lazypath)
 
-  Plug 'cocopon/vaffle.vim' " file manager
-  Plug 'gcmt/taboo.vim' " rename tabs
-  Plug 'Konfekt/vim-CtrlXA'
-  Plug 'justinmk/vim-syntax-extra'
-  Plug 'tpope/vim-speeddating'
+require("lazy").setup(
+{
+  -- TODO: add configs
+  {
+    "inkarkat/vim-mark",
+    lazy = false,
+    dependencies = {
+      "inkarkat/vim-ingo-library"
+    },
+    config = function()
+      -- vim.g.mw_no_mappings = 1
+    end,
+  },
 
-  Plug 'Shougo/vinarise.vim'
-  Plug 'ryanoasis/vim-devicons'
-  Plug 't9md/vim-quickhl'
+  {
+    "wincent/ferret",
+    lazy = false,
+    dependencies = {
+      "Olical/vim-enmasse",
+      "yssl/QFEnter"
+    },
+    config = function()
+    end,
+  },
 
-  Plug 'octol/vim-cpp-enhanced-highlight', {'for': ['c', 'cpp']}
-  Plug 'justinmk/vim-syntax-extra', {'for': ['c', 'cpp']}
-  Plug 'junegunn/vim-easy-align'
-  Plug 'Olical/vim-enmasse'
-  Plug 'mhinz/vim-signify', {'for': ['c', 'xml', 'm4', 'h', 'c.m4', 'h.m4']}
-  Plug 'vimwiki/vimwiki'
-  Plug 'rking/ag.vim'
-  Plug 'tpope/vim-surround'
-  Plug 'jiangmiao/auto-pairs'
-  Plug 'ctrlpvim/ctrlp.vim'
-  Plug 'kshenoy/vim-signature'                 " bookmark management
-  Plug 'tpope/vim-commentary'
-  Plug 'andymass/vim-matchup'                     " extends %
-  Plug 'itchyny/lightline.vim'
-  Plug 'AndrewRadev/linediff.vim'
-  Plug 'mbbill/undotree'
-  Plug 'romainl/vim-qf'
+  {
+    "airblade/vim-rooter",
+    lazy = false,
+    config = function()
+    end,
+  },
 
-" Initialize plugin system
-call plug#end()
+  {
+      -- TODO: check if I can replace it with Picker, unfortunately seems not
+    "nvim-telescope/telescope.nvim",
+    lazy = false,
+    dependencies = {
+      "nvim-lua/popup.nvim",
+      "nvim-lua/plenary.nvim",
+      "nvim-telescope/telescope-frecency.nvim",
+    },
+    config = function()
+    end,
+  },
+
+  {
+    "nanozuki/tabby.nvim",
+    lazy = false,
+    dependencies = {
+      "nvim-tree/nvim-web-devicons",
+    },
+    config = function()
+    end,
+  },
+
+  {
+    "monaqa/dial.nvim",
+    lazy = false,
+    config = function()
+      local augend = require("dial.augend")
+      require("dial.config").augends:register_group{
+        -- default augends used when no group name is specified
+        default = {
+          augend.constant.alias.bool,
+          augend.semver.alias.semver,
+          augend.integer.alias.decimal,   -- nonnegative decimal number (0, 1, 2, 3, ...)
+          augend.integer.alias.hex,       -- nonnegative hex number  (0x01, 0x1a1f, etc.)
+          augend.date.alias["%Y/%m/%d"],  -- date (2022/02/19, etc.)
+          augend.constant.new{ elements = {"true", "false"} },
+          augend.constant.new{ elements = {"TRUE", "FALSE"} },
+          augend.constant.new{ elements = {"E_OK", "E_NOT_OK"} },
+          augend.constant.new{ elements = {"DCM_INITIAL", "DCM_CANCEL", "DCM_E_PENDING", "DCM_E_FORCE_RCRRP"} },
+        },
+      }
+
+      vim.keymap.set("n", "<C-a>", function()
+          require("dial.map").manipulate("increment", "normal")
+      end)
+      vim.keymap.set("n", "<C-x>", function()
+          require("dial.map").manipulate("decrement", "normal")
+      end)
+      vim.keymap.set("n", "g<C-a>", function()
+          require("dial.map").manipulate("increment", "gnormal")
+      end)
+      vim.keymap.set("n", "g<C-x>", function()
+          require("dial.map").manipulate("decrement", "gnormal")
+      end)
+      vim.keymap.set("v", "<C-a>", function()
+          require("dial.map").manipulate("increment", "visual")
+      end)
+      vim.keymap.set("v", "<C-x>", function()
+          require("dial.map").manipulate("decrement", "visual")
+      end)
+      vim.keymap.set("v", "g<C-a>", function()
+          require("dial.map").manipulate("increment", "gvisual")
+      end)
+      vim.keymap.set("v", "g<C-x>", function()
+          require("dial.map").manipulate("decrement", "gvisual")
+      end)
+    end,
+  },
+
+  {
+    "mhinz/vim-signify",
+    -- TODO: ft = ['c', 'xml', 'm4', 'h', 'c.m4', 'h.m4'],
+    config = function()
+    end,
+  },
+
+  {
+    "kshenoy/vim-signature",
+    config = function()
+    end,
+  },
+
+  {
+    "folke/todo-comments.nvim",
+    config = function()
+    end,
+  },
+
+  {
+    "AndrewRadev/linediff.vim",
+    config = function()
+    end,
+  },
+
+  {
+    "mbbill/undotree",
+    config = function()
+    end,
+  },
+
+  -- {"nvim-treesitter/nvim-treesitter", build = ":TSUpdate"},
+
+  {
+    "cocopon/vaffle.vim",
+    config = function()
+    end,
+  },
+
+  {
+    "marko-cerovac/material.nvim",
+    lazy = false,
+    priority = 1000,
+    config = function()
+    end,
+  },
+
+  {
+    "nlknguyen/papercolor-theme",
+    lazy = false,
+    priority = 1000,
+    config = function()
+    end,
+  },
+
+  {
+    "rakr/vim-one",
+    lazy = false,
+    priority = 1000,
+    config = function()
+    end,
+  },
+
+  {
+    "echasnovski/mini.nvim",
+    lazy = false,
+    config = function()
+    end,
+  },
+
+  {
+    "dstein64/vim-startuptime",
+    -- lazy-load on a command
+    cmd = "StartupTime",
+    -- init is called during startup. Configuration for vim plugins typically should be set in an init function
+    init = function()
+      vim.g.startuptime_tries = 10
+    end,
+  },
+
+  -- if some code requires a module from an unloaded plugin, it will be automatically loaded.
+  -- So for api plugins like devicons, we can always set lazy=true
+  { "nvim-tree/nvim-web-devicons", lazy = true },
+
+  {'akinsho/toggleterm.nvim', version = "*", config = true},
+
+  {
+     "folke/trouble.nvim",
+     dependencies = { "nvim-tree/nvim-web-devicons" },
+     opts = {},
+  },
+
+
+}
+)
+-- Mini.nvim
+require('mini.ai').setup()
+
+require('mini.align').setup({
+  mappings = {
+    start = '<Enter>', -- TODO: think of replacing with ga
+    start_with_preview = 'gA',
+  }
+})
+
+require('mini.comment').setup()
+
+require('mini.jump').setup()
+
+-- TODO: seems like replacement to MRU - not really, it's project based
+require('mini.visits').setup()
+require('mini.pick').setup()
+require('mini.extra').setup()
+
+-- TODO:maye do it later
+--require('mini.completion').setup()
+--
+--local lspconfig = require('lspconfig')
+--lspconfig.clangd.setup{
+--  on_attach = aerial.on_attach,
+--}
+
+-- TODO: find a way to enable this as needed, otherwise is annoying
+-- require('mini.cursorword').setup({
+--   delay = 700,
+-- })
+
+require('mini.pairs').setup()
+
+-- gS, go split
+require('mini.splitjoin').setup()
+
+-- {{{ mini.statusline
+require('mini.statusline').setup(
+{
+  -- Content of statusline as functions which return statusline string. See
+  -- `:h statusline` and code of default contents (used instead of `nil`).
+  content = {
+    -- Content for active window
+    active = function()
+      local mode, mode_hl = MiniStatusline.section_mode { trunc_width = 120 }
+      local git = MiniStatusline.section_git { trunc_width = 75 }
+      local diagnostics = MiniStatusline.section_diagnostics { trunc_width = 75 }
+      local filename = MiniStatusline.section_filename { trunc_width = 140 }
+      local fileinfo = MiniStatusline.section_fileinfo { trunc_width = 120 }
+      local location = MiniStatusline.section_location { trunc_width = 75 }
+      local search = MiniStatusline.section_searchcount { trunc_width = 75 }
+      -- vim.opt.laststatus = 3
+
+      return MiniStatusline.combine_groups {
+        { hl = mode_hl },
+        { strings = { mode } },
+        { hl = 'MiniStatuslineInactive', strings = { git, diagnostics, search } },
+        '%=', -- Start center alignment
+        '%<', -- Mark general truncate point
+        { strings = { filename } },
+        '%=', -- start right alignment
+        { hl = 'MiniStatuslineInactive', strings = { fileinfo } },
+        { strings = { location } },
+      }
+    end,
+    inactive = function() end,
+  },
+  set_vim_settings = false,
+})
+-- }}}
+
+require('mini.surround').setup({
+  mappings = {
+    add = 'S', -- Add surrounding in Normal and Visual modes
+    delete = 'ds', -- Delete surrounding
+    find = 'sf', -- Find surrounding (to the right)
+    find_left = 'sF', -- Find surrounding (to the left)
+    highlight = 'sh', -- Highlight surrounding
+    replace = 'sr', -- Replace surrounding
+    update_n_lines = 'sn', -- Update `n_lines`
+
+    suffix_last = 'l', -- Suffix to search with "prev" method
+    suffix_next = 'n', -- Suffix to search with "next" method
+  },
+})
+
+-- {{{Tabline
+vim.o.showtabline = 2
+vim.opt.sessionoptions = 'curdir,folds,globals,help,tabpages,terminal,winsize'
+local theme = {
+  fill = 'TabLineFill',
+  -- Also you can do this: fill = { fg='#f2e9de', bg='#907aa9', style='italic' }
+  head = 'TabLine',
+  -- current_tab = 'TabLineSel',
+  current_tab = { fg = '#F8FBF6', bg = '#896a98', style = 'italic' },
+  tab = 'TabLine',
+  win = 'TabLine',
+  tail = 'TabLine',
+}
+
+require('tabby.tabline').set(function(line)
+  return {
+    {
+      line.sep(' ', theme.head, theme.fill),
+    },
+    line.tabs().foreach(function(tab)
+      local hl = tab.is_current() and theme.current_tab or theme.tab
+      return {
+        line.sep(' ', hl, theme.fill),
+        tab.is_current() and '' or '',
+        tab.number(),
+        tab.name(),
+        -- tab.close_btn(''), -- show a close button
+        line.sep(' ', hl, theme.fill),
+        hl = hl,
+        margin = ' ',
+      }
+    end),
+    line.spacer(),
+    --shows list of windows in tab
+    line.wins_in_tab(line.api.get_current_tab()).foreach(function(win)
+      return {
+        line.sep(' ', theme.win, theme.fill),
+        win.is_current() and '' or '',
+        win.buf_name(),
+        line.sep(' ', theme.win, theme.fill),
+        hl = theme.win,
+        margin = ' ',
+      }
+    end),
+    {
+      line.sep(' ', theme.tail, theme.fill),
+    },
+    hl = theme.fill,
+  }
+end)
+-- }}}
+
+-- require'nvim-treesitter.install'.compilers = { "clang" }
+-- require'nvim-treesitter.configs'.setup {
+--   -- A list of parser names, or "all" (the five listed parsers should always be installed)
+--   ensure_installed = { "c", "lua", "vim", "python"},
+--
+--   -- Install parsers synchronously (only applied to `ensure_installed`)
+--   sync_install = false,
+--
+--   -- Automatically install missing parsers when entering buffer
+--   -- Recommendation: set to false if you don't have `tree-sitter` CLI installed locally
+--   auto_install = false,
+--
+--   -- List of parsers to ignore installing (or "all")
+--   ignore_install = { "javascript" },
+--
+--   ---- If you need to change the installation directory of the parsers (see -> Advanced Setup)
+--   -- parser_install_dir = "/some/path/to/store/parsers", -- Remember to run vim.opt.runtimepath:append("/some/path/to/store/parsers")!
+--
+--   highlight = {
+--     enable = true,
+--
+--     -- NOTE: these are the names of the parsers and not the filetype. (for example if you want to
+--     -- disable highlighting for the `tex` filetype, you need to include `latex` in this list as this is
+--     -- the name of the parser)
+--     -- list of language that will be disabled
+--     disable = { "rust" },
+--     -- Or use a function for more flexibility, e.g. to disable slow treesitter highlight for large files
+--     disable = function(lang, buf)
+--         local max_filesize = 100 * 1024 -- 100 KB
+--         local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+--         if ok and stats and stats.size > max_filesize then
+--             return true
+--         end
+--     end,
+--
+--     -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
+--     -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
+--     -- Using this option may slow down your editor, and you may see some duplicate highlights.
+--     -- Instead of true it can also be a list of languages
+--     additional_vim_regex_highlighting = true,
+--   },
+-- }
+
+-- disable netrw at the very start of your init.lua
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+
+-- optionally enable 24-bit colour
+vim.opt.termguicolors = true
+
+-- local neogit = require('neogit')
+-- neogit.setup {}
+
+require('telescope').setup{
+  defaults = {
+    mappings = {
+      i = {
+        ['<C-p>'] = require('telescope.actions.layout').toggle_preview
+      }
+    },
+    preview = {
+      hide_on_startup = true -- hide previewer when picker starts
+    }
+  },
+  pickers = {
+    -- Default configuration for builtin pickers goes here:
+    -- picker_name = {
+    --   picker_config_key = value,
+    --   ...
+    -- }
+    -- Now the picker_config_key will be applied every time you call this
+    -- builtin picker
+  },
+  extensions = {
+    frecency = {
+      show_scores = false,
+      show_unindexed = true,
+      ignore_patterns = { "*.git/*", "*/tmp/*" },
+      disable_devicons = false,
+    },
+  },
+}
+
+require("telescope").load_extension "frecency"
+
+-- TODO: check the above comment about trouble
+-- local actions = require("telescope.actions")
+-- local trouble = require("trouble.providers.telescope")
+-- 
+-- local telescope = require("telescope")
+-- 
+-- telescope.setup {
+--   defaults = {
+--     mappings = {
+--       i = { ["<c-t>"] = trouble.open_with_trouble },
+--       n = { ["<c-t>"] = trouble.open_with_trouble },
+--     },
+--   },
+-- }
+
+-- require("fzf-lua").setup({})
+
+-- -- Repeat this for each language server you have configured
+-- require("nvim-surround").setup {
+--     -- Configuration here, or leave empty to use defaults
+-- }
+
+-- Plug 'folke/todo-comments.nvim'
+require("todo-comments").setup {
+  keywords = {
+    FIX = {
+      icon = " ", -- icon used for the sign, and in search results
+      color = "error", -- can be a hex color, or a named color (see below)
+      alt = { "FIXME", "BUG", "FIXIT", "ISSUE" }, -- a set of other keywords that all map to this FIX keywords
+      -- signs = false, -- configure signs for some keywords individually
+    },
+    TODO = { icon = " ", color = "info" },
+    HACK = { icon = " ", color = "warning" },
+    WARN = { icon = " ", color = "warning", alt = { "WARNING", "XXX" } },
+    PERF = { icon = " ", alt = { "OPTIM", "PERFORMANCE", "OPTIMIZE" } },
+    NOTE = { icon = " ", color = "hint", alt = { "INFO" } },
+    ERROR = { icon = " ", color = "error", alt = { "ERROR" } },
+    TEST = { icon = "⏲ ", color = "test", alt = { "TESTING", "PASSED", "FAILED" } },
+},
+  }
+
+-- Use (s-)tab to:
+--- move to prev/next item in completion menuone
+--- jump to prev/next snippet's placeholder
+_G.tab_complete = function()
+  if vim.fn.pumvisible() == 1 then
+    return t "<C-n>"
+  elseif check_back_space() then
+    return t "<Tab>"
+  else
+    return vim.fn['compe#complete']()
+  end
+end
+_G.s_tab_complete = function()
+  if vim.fn.pumvisible() == 1 then
+    return t "<C-p>"
+  else
+    return t "<S-Tab>"
+  end
+end
+
+vim.api.nvim_set_keymap("i", "<Tab>", "v:lua.tab_complete()", {expr = true})
+vim.api.nvim_set_keymap("s", "<Tab>", "v:lua.tab_complete()", {expr = true})
+vim.api.nvim_set_keymap("i", "<S-Tab>", "v:lua.s_tab_complete()", {expr = true})
+vim.api.nvim_set_keymap("s", "<S-Tab>", "v:lua.s_tab_complete()", {expr = true})
+
+if vim.g.neovide then
+  vim.g.neovide_fullscreen = false
+  vim.g.neovide_cursor_animation_length = 0
+end
+
+EOF
+
 " }}}
 
 " {{{ Editior settings
 
-if (has("win32") && (g:configForWork == 1))
-  let userProfile = substitute($USERPROFILE,'\\','/','g')
+" Boost performance of rendering long lines
+set synmaxcol=300
 
-  " Work specific things
-  source $HOME/AppData/Local/nvim/eb.vim
 
-  let g:python3_host_prog='C:\Python36\python.exe'
-  let g:python_host_prog='C:\Python27\python.exe'
-endif
+" How many lines to scroll at a time, make scrolling appears faster
+" set scrolljump=5
 
-syntax on
-colorscheme Spacegray
+set mouse=a
+
 if (has("termguicolors"))
  set termguicolors
  let $NVIM_TUI_ENABLE_TRUE_COLOR=1
  let &t_8b="\e[48;2;%ld;%ld;%ldm"
 endif
 
+syntax on
+
+" Plug 'marko-cerovac/material.nvim'
+let g:material_contrast = v:true
+let g:material_style = 'darker'
+set background=light
+colorscheme material
+
+colorscheme one
+
 set encoding=utf-8
 scriptencoding utf-8
 
 " map copy/paste
-"set clipboard=unnamed
 set clipboard+=unnamedplus
 
 " folding
-set foldmethod=marker
+set foldmethod=manual
 
 " set the curent directory
 set autochdir
@@ -153,14 +623,19 @@ set guioptions-=L
 set guioptions-=r
 set guioptions-=m
 set guioptions-=e
+"
+" Disable built-in plugins
+let g:loaded_2html_plugin      = 1
+let g:loaded_gzip              = 1
+let g:loaded_rrhelper          = 1
+let g:loaded_tarPlugin         = 1
+let g:loaded_zipPlugin         = 1
+let g:loaded_tutor_mode_plugin = 1
+let g:loaded_tarPlugin         = 1
+let g:loaded_vimballPlugin     = 1
 
 " show the current line
 set cul
-
-" set the font
-" set guifont=Mononoki-Bold
-" set guifont=Consolas:h14
-set guifont="Hack NF":h18
 
 " show the filename in the bottom of the window
 set modeline
@@ -177,11 +652,28 @@ if exists('&inccommand')
 endif
 
 " autoreads
-set autoread
+" set autoread
+" autocmd FocusGained,CursorHold ?* if getcmdwintype() == '' | checktime | endif
+
+" set autoread
+" " TODO: check what's with this
+" augroup checktime
+"     au!
+"     if !has("gui_running")
+"         "silent! necessary otherwise throws errors when using command
+"         "line window.
+"         autocmd BufEnter        * silent! checktime
+"         autocmd CursorHold      * silent! checktime
+"         autocmd CursorHoldI     * silent! checktime
+"         "these two _may_ slow things down. Remove if they do.
+"         " autocmd CursorMoved     * silent! checktime
+"         " autocmd CursorMovedI    * silent! checktime
+"     endif
+" augroup END
 
 set title
 
-let &errorformat="%f:%l:%c: %t%*[^:]:%m,%f:%l: %t%*[^:]:%m," . &errorformat
+let &errorformat="%f:%l:%c:%m"
 
 " C stuff
 set cino+=(0             "Align paramater lists after newline under '('
@@ -201,51 +693,37 @@ nnoremap <Leader>do :diffoff<CR>
 nnoremap <Leader>dp :diffput<CR>
 nnoremap <Leader>dg :diffget<CR>
 nnoremap <Leader>du :diffupdate<CR>
-nnoremap <Leader>m  :CtrlPMRUFiles<CR>
+" nnoremap <Leader>m  :CtrlPMRUFiles<CR>
+nnoremap <Leader>m  :Telescope frecency<CR>
 nnoremap <Leader>st :call StripTrailingWhitespaces()<cr>
 nnoremap <Leader>sw :set wrap!<CR>
 nnoremap <Leader>tc :tabclose<CR>
 nnoremap <Leader>tn :tabnew<CR>
 nnoremap <silent><Leader>/ :nohlsearch<CR>
 nnoremap <silent><Leader>c :call ToggleColorColumn()<CR>
-if (has("win32") && (g:configForWork == 1))
-nnoremap <Leader>e  :Ag!  <C-R>=GetProj(2)<CR><C-Left><C-Left><C-Left><C-Left><C-Right><Right>
-nnoremap <Leader>r  :Ag! <C-R><C-W> <C-R>=GetProj(2)<CR><C-Left><C-Left><C-Left><C-Left><C-Right><Right><CR>
-nnoremap <Leader>n  :CtrlP <C-R>=GetProj(2)<CR><CR>
-nnoremap <silent> <Leader>nn :call GetStep()<Left>
-nnoremap <silent><Leader>sL :w<CR>:silent !start TortoiseProc.exe /command:log /path:<C-R>=GetProj(2)<CR> /notempfile /closeonend<CR>
-nnoremap <silent><Leader>sb :w<CR>:silent !start TortoiseProc.exe /command:blame /path:% /notempfile /closeonend<CR>
-nnoremap <silent><Leader>sc :w<CR>:silent !start TortoiseProc.exe /command:commit /path:<C-R>=GetProj(2)<CR> /notempfile /closeonend<CR>
-nnoremap <silent><Leader>sd :w<CR>:silent !start TortoiseProc.exe /command:diff /path:<C-R>=GetProj(2)<CR> /notempfile /closeonend<CR>
-nnoremap <silent><Leader>sl :w<CR>:silent !start TortoiseProc.exe /command:log /path:% /notempfile /closeonend<CR>
-nnoremap <silent><Leader>sr :w<CR>:silent !start TortoiseProc.exe /command:repobrowser /path:<C-R>=GetProj(2)<CR> /notempfile /closeonend<CR>
-nnoremap <silent><Leader>su :w<CR>:silent !start TortoiseProc.exe /command:update /path:<C-R>=GetProj(2)<CR> /notempfile /closeonend<CR>
-nnoremap <silent><Leader><Leader>n :silent !"C:\Program Files (x86)\Notepad++\notepad++.exe" %:p<CR><CR>
-nnoremap <leader>gn :let @*=substitute(expand("%"), "/", "\\", "g")<CR>
-nnoremap <leader>gd :let @*=substitute(expand("%"), "/", "\\", "g").":".line('.')<CR>
-nnoremap <leader>gp :let @*=substitute(expand("%:p"), "/", "\\", "g")<CR>
-endif
-
-nnoremap <silent><leader>tt :terminal<CR>
-nnoremap <silent><leader>tv :vnew<CR>:terminal<CR>
-nnoremap <silent><leader>ts :new<CR>:terminal<CR>
 
 nnoremap <silent><leader>S z=
 nnoremap <silent><leader>s :set spell!<CR>
+
+nnoremap <leader>ov :exe ':silent !code %'<CR>:redraw!<CR>
+nnoremap <Leader>e  :Ack  <C-R>=FindRootDirectory()<CR>\<C-Left><C-Left><C-Left><C-Left><C-Right><Right>
+nnoremap <Leader>r  :Ack <C-R><C-W> <C-R>=FindRootDirectory()<CR><C-Left><C-Left><C-Left><C-Left><C-Right><Right><CR>
 
 vmap <Leader>ld :Linediff<CR>
 vmap ;' V'<O#if 0<Esc>'>o#endif<Esc>
 nnoremap <C-s> :w<CR>
 
-if (has("win32") && (g:configForWork == 1))
-map <C-F> :pyf C:\Program Files\LLVM\share\clang\clang-format.py<cr>
-imap <C-F> <c-o>:pyf C:\Program Files\LLVM\share\clang\clang-format.py<cr>
-endif
+imap jj <Esc>
 
 cnoremap <c-v> <c-r>+
 map! <S-Insert> <C-R>+
 
-nnoremap _ :e.<CR>
+" replace the selection with the buffer
+vmap r "_dp
+
+" c: Change into the blackhole register to not clobber the last yank
+nnoremap c "_c
+
 nnoremap gp `[v`]
 
 " Replace a word with yanked text
@@ -296,11 +774,8 @@ nnoremap [b :bprevious<CR>
 nnoremap ]t :tabnext<CR>
 nnoremap [t :tabprevious<CR>
 
-if (g:configForWork == 1)
-nnoremap ]l :ALENext<CR>
-nnoremap [l :ALEPrevious<CR>
-endif
-
+nnoremap ]l :lnext<CR>
+nnoremap [l :lprev<CR>
 map <C-Down> ]c
 map <C-Up> [c
 "
@@ -312,10 +787,6 @@ nmap < <<
 " F* mappings
 nnoremap <F2> :cprevious<CR>
 nnoremap <F3> :cnext<CR>
-if (has("win32") && (g:configForWork == 1))
-nnoremap <F6> :silent !C:\totalcmd\TOTALCMD64.EXE /O <C-R>=getcwd()<CR><CR>
-endif
-nnoremap <F5> :silent !start cmd<CR>
 nnoremap <F10> :call ToggleNumber()<cr>
 
 " play macros with Q
@@ -328,29 +799,14 @@ nnoremap * *``
 
 " Fix for legacy vi inconsistency
 map Y y$
-map ; :
 
 " Remap VIM 0 to first non-blank character
 map 0 ^
-nmap <Space>. <Plug>(quickhl-manual-this)
-xmap <Space>. <Plug>(quickhl-manual-this)
-nmap <Space>> <Plug>(quickhl-manual-reset)
-xmap <Space>> <Plug>(quickhl-manual-reset)
 
 " }}}
 
 " {{{ Autocmds
-au FileType {xdm} setlocal iskeyword=ENUMERATION
-au FileType qf call AdjustWindowHeight(3, 5)
 au FileType qf set nowrap
-
-" Set file type
-augroup project
-  autocmd!
-  autocmd BufRead,BufNewFile *.h,*.c,*.c.m4,*.h.m4 set filetype=c
-  autocmd BufEnter,BufRead,BufNewFile *.h,*.c,*.c.m4,*.h.m4 call lightline#update()
-  autocmd BufRead,BufNewFile *.xdm,*.xdm.m4,*.arxml.m4,*xml.m4 set filetype=xml
-augroup END
 
 " Set row highlight
 augroup BgHighlight
@@ -359,19 +815,17 @@ augroup BgHighlight
     autocmd WinLeave * set nocul
 augroup END
 
+" Makefiles
+
+au FileType make setl noexpandtab " use real tabs
+au FileType make setl shiftwidth=8 " standard shift width
+au FileType make setl tabstop=8 " use standard tab size
+
 " Set window position variable which is used in the diff mapping
 augroup WinPos
     autocmd!
-    " autocmd WinEnter * echo winnr()
     autocmd WinEnter * call MapDiffCmd(winnr())
-    " autocmd WinLeave * unlet g:windPosition
 augroup END
-"
-" At reopen jump at last position in file
-autocmd BufReadPost *
-      \ if line("'\"") > 0 && line("'\"") <= line("$") |
-      \   exe "normal! g`\"" |
-      \ endif
 
 augroup AutoSwap
         autocmd!
@@ -397,153 +851,40 @@ function! AS_HandleSwapfile (filename, swapname)
   endif
 endfunction
 
-autocmd CursorHold,BufWritePost,BufReadPost,BufLeave *
-  \ if isdirectory(expand("<amatch>:h")) | let &swapfile = &modified | endif
-
-augroup checktime
-    au!
-    if !has("gui_running")
-        "silent! necessary otherwise throws errors when using command
-        "line window.
-        autocmd BufEnter,CursorHold,CursorHoldI,CursorMoved,CursorMovedI,FocusGained,BufEnter,FocusLost,WinLeave * checktime
-    endif
-augroup END
-
-augroup FileChangedAlert
-  " Helps if you have to use another editor on the same file
-  autocmd! FileChangedShell * echoerr "File has been changed outside of Vim."
-augroup END
-
-autocmd! bufwritepost init.vim source %
+" autocmd! bufwritepost init.vim source %
 
 " }}}
 
-" {{{ Plugin settings
-" -----------MatchUp-------------
-hi MatchParen cterm=italic gui=italic
-" let b:match_words.= '\<IF\>:\<ENDIF\>,\<LOOP\>:\<ENDLOOP\>,\<FOR\>:\<ENDFOR\>,'
+" {{{ Plugins
 
-" -----------Youcompleteme-------------
-if (has("win32") && (g:configForWork == 1))
-let g:ycm_server_python_interpreter = 'C:/Python27/python.exe'
-let g:ycm_confirm_extra_conf = 0
-let g:ycm_min_num_of_chars_for_completion = 3
-let g:ycm_complete_in_strings = 1
-let g:ycm_autoclose_preview_window_after_insertion = 1
-let g:ycm_autoclose_preview_window_after_completion = 0
-let g:ycm_semantic_triggers = {
-      \     'c,cpp,objcpp' : 're![a-zA-Z_]',
-      \ }
+" Plug 'inkarkat/vim-mark'
+let g:mw_no_mappings = 1
 
-autocmd FileType c nnoremap <buffer> <C-]> :YcmCompleter GoTo<cr>
-autocmd FileType c nnoremap <buffer> <silent> gd :YcmCompleter GoTo<cr>
-autocmd FileType c nnoremap <buffer> <silent> gt :YcmCompleter GetType<cr>
-autocmd FileType c nnoremap <buffer> <silent> gf :YcmCompleter GetParent<cr>
-autocmd FileType c nnoremap <buffer> <silent> gr :YcmCompleter FixIt<cr>
-autocmd FileType c nnoremap <buffer> <silent> gD :YcmCompleter GetDoc<cr>
-endif
+" TODO: candidate for replacement
+nnoremap <leader>n <cmd>lua require('telescope.builtin').find_files({
+\   prompt_title = "Project files",
+\   previewer = false,
+\   cwd = vim.call('FindRootDirectory')
+\ })<CR>
 
-" -----------Lightline-----------
-if exists('g:gui_oni')
-let g:lightline = {
-      \ 'active': {
-      \ 'left': [ [ 'mode', 'paste' ],
-      \           [ 'readonly', 'filename', 'modified' ] ],
-      \   'right': [ [ 'lineinfo' ],
-      \              [ 'percent', 'warn', 'errors' ],
-      \              [ 'charvaluehex', 'fileformat', 'fileencoding', 'filetype' ] ]
-      \ },
-      \ 'component_function': {
-      \   'errors': 'LightlineLinterErrors',
-      \   'warn': 'LightlineLinterWarnings',
-      \ },
-      \ }
-else
-endif
-let g:lightline = {
-      \ 'colorscheme': 'Spacegray',
-      \ 'separator': { 'left': "\uE0B0", 'right': "\uE0B2" },
-      \ 'subseparator': { 'left': "\uE0B1", 'right': "\uE0B3" },
-      \ 'active': {
-      \ 'left': [ [ 'mode', 'paste' ],
-      \           [ 'readonly', 'filename', 'modified' ] ],
-      \   'right': [ [ 'lineinfo' ],
-      \              [ 'percent', 'warn', 'errors' ],
-      \              [ 'charvaluehex', 'fileformat', 'fileencoding', 'filetype' ] ]
-      \ },
-      \ 'component_function': {
-      \   'errors': 'LightlineLinterErrors',
-      \   'warn': 'LightlineLinterWarnings',
-      \ },
-      \ }
+" Plug 'mhinz/vim-signify'
+let g:signify_disable_by_default = 0
+let g:signify_vcs_list = [ 'svn', 'git' ]
 
-let g:lightline.tab = {
-    \ 'active': [ 'tabnum', 'filename', 'modified' ],
-    \ 'inactive': [ 'tabnum', 'filename', 'modified' ],
-    \ 'right': [ [ 'close', 'percent' ] ] }
+" " Plug 'ctrlpvim/ctrlp.vim'
+" " TODO: candidate for replacement. Seems frecency is a good one
+" let g:ctrlp_max_history = 4000
+" let g:ctrlp_user_command = 'rg %s --files --color=never --glob ""'
+" let g:ctrlp_use_caching = 0
 
-if (has("win32") && (g:configForWork == 1))
-function! LightlineLinterWarnings() abort
-  let l:counts = youcompleteme#GetWarningCount()
-  return l:counts == 0 ? '' : printf('%d Warnings', l:counts)
-endfunction
+" Plug 'yssl/QFEnter' " quickfix options and mappings
+let g:qfenter_keymap = {}
+let g:qfenter_keymap.open = ['<CR>']
+let g:qfenter_keymap.vopen = ['v']
+let g:qfenter_keymap.hopen = ['s']
+let g:qfenter_keymap.topen = ['t']
 
-function! LightlineLinterErrors() abort
-  let l:counts = youcompleteme#GetErrorCount()
-  return l:counts == 0 ? '' : printf('%d Errors', l:counts)
-endfunction
-endif
-
-" -----------Signify-----------
-" let g:signify_disable_by_default = 0
-let g:signify_vcs_list = [ 'svn' ]
-
-" -----------EasyAlign-----------
-" Start interactive EasyAlign in visual mode (e.g. vip<Enter>)
-vmap <Enter> <Plug>(EasyAlign)
-
-let s:easy_align_delimiters = {
-\  ' ': { 'pattern': ' ',  'left_margin': 0, 'right_margin': 0, 'stick_to_left': 0 },
-\  '=': { 'pattern': '===\|<=>\|\(&&\|||\|<<\|>>\)=\|=\~[#?]\?\|=>\|[:+/*!%^=><&|.-]\?=[#?]\?',
-\                          'left_margin': 1, 'right_margin': 1, 'stick_to_left': 0 },
-\  ':': { 'pattern': ':',  'left_margin': 0, 'right_margin': 1, 'stick_to_left': 1 },
-\  ',': { 'pattern': ',',  'left_margin': 0, 'right_margin': 1, 'stick_to_left': 1 },
-\  '|': { 'pattern': '|',  'left_margin': 1, 'right_margin': 1, 'stick_to_left': 0 },
-\  '.': { 'pattern': '\.', 'left_margin': 0, 'right_margin': 0, 'stick_to_left': 0 },
-\  '#': { 'pattern': '#\+', 'delimiter_align': 'l', 'ignore_groups': ['!Comment']  },
-\  '&': { 'pattern': '\\\@<!&\|\\\\',
-\                          'left_margin': 1, 'right_margin': 1, 'stick_to_left': 0 },
-\  '{': { 'pattern': '(\@<!{',
-\                          'left_margin': 1, 'right_margin': 1, 'stick_to_left': 0 },
-\  '}': { 'pattern': '}',  'left_margin': 1, 'right_margin': 0, 'stick_to_left': 0 },
-\ ']': {
-\     'pattern':       '[[\]]',
-\     'left_margin':   0,
-\     'right_margin':  0,
-\     'stick_to_left': 0
-\   },
-\ ')': {
-\     'pattern':       '[()]',
-\     'left_margin':   0,
-\     'right_margin':  0,
-\     'stick_to_left': 0
-\   }
-\ }
-
-" -----------Ag-----------
-let g:ag_prg='rg -H -S --vimgrep --ignore-file '.userProfile.'/ignore'
-" " let g:ag_prg="sift -n"
-let g:ag_highlight=1
-let g:ag_format="%f:%l:%c:%m"
-let g:ag_working_path_mode='r'
-
-" -----------Ctrlp-----------
-let g:ctrlp_max_history = 1000
-let g:ctrlp_user_command = 'rg %s --files --color=never --glob ""'
-let g:ctrlp_use_caching = 0
-
-
-" -----------Vaffle-----------
+" Plug 'cocopon/vaffle.vim' " file manager
 function! s:customize_vaffle_mappings() abort
   " Customize key mappings here
   nmap <buffer> <Bslash> <Plug>(vaffle-open-root)
@@ -557,6 +898,19 @@ augroup vimrc_vaffle
   autocmd FileType vaffle call s:customize_vaffle_mappings()
 augroup END
 
+" Plug 'airblade/vim-rooter'
+let g:rooter_silent_chdir = 1
+let g:rooter_patterns = ['.git', '.svn', 'util', 'plugin.xml']
+let g:rooter_manual_only = 1
+
+" Plug 'wincent/ferret'
+let g:FerretAutojump = 0
+let g:FerretHlsearch = 1
+let g:FerretMap=0
+let g:FerretExecutableArguments = {
+      \   'rg': '-H -S --sort path --column --line-number --no-heading --ignore-file '.$USERPROFILE.'/ignore'
+      \ }
+
 " }}}
 
 " {{{ Functions and commands
@@ -569,21 +923,6 @@ function! ToggleColorColumn()
         setlocal colorcolumn=100
     endif
 endfunction
-
-if (has("win32") && (g:configForWork == 1))
-function! ToggleYCM()
-    if g:ycm_auto_trigger != 0
-        let g:ycm_auto_trigger=0
-        let g:ycm_echo_current_diagnostic=0
-        echom "Disabled YCM"
-    else
-        let g:ycm_auto_trigger=1
-        let g:ycm_echo_current_diagnostic=1
-        echom "Enabled YCM"
-    endif
-endfunction
-nnoremap <leader>y :call ToggleYCM()<CR>
-endif
 
 " toggle between number and relativenumber
 function! ToggleNumber()
@@ -603,20 +942,6 @@ function! StripTrailingWhitespaces()
   %s/\s\+$//e
   let @/=_s
   call cursor(l, c)
-endfunction
-
-function! AdjustWindowHeight(minheight, maxheight)
-  let l = 1
-  let n_lines = 0
-  let w_width = winwidth(0)
-  while l <= line('$')
-    " number to float for division
-    let l_len = strlen(getline(l)) + 0.0
-    let line_width = l_len/w_width
-    let n_lines += float2nr(ceil(line_width))
-    let l += 1
-  endw
-  exe max([min([n_lines, a:maxheight]), a:minheight]) . "wincmd _"
 endfunction
 
 function! DeleteInactiveBufs()
@@ -648,33 +973,6 @@ function! Scratch()
   setlocal buftype=nofile bufhidden=hide noswapfile
 endfunction
 
-function! Nr2Bin(nr)
- let n = a:nr
- let r = ""
- while n
-   let r = '01'[n % 2] . r
-   let n = n / 2
- endwhile
- return r
-endfunc
-
-nnoremap gn :call DecAndHex(expand("<cWORD>"))<CR>
-
-function! DecAndHex(number)
-  let ns = '[.,;:''"<>()^_uUlL]'      " number separators
-  if a:number =~? '^' . ns. '*[-+]\?\d\+' . ns . '*$'
-     let dec = substitute(a:number, '[^0-9+-]*\([+-]\?\d\+\).*','\1','')
-     let @+ = dec . printf(' 0x%X 0b%b', dec, Nr2Bin(dec))
-     echo dec . printf(' 0x%X 0b%b', dec, Nr2Bin(dec))
-  elseif a:number =~? '^' . ns. '*\%\(h''\|0x\|#\)\?\(\x\+\)' . ns . '*$'
-     let hex = substitute(a:number, '.\{-}\%\(h''\|0x\|#\)\?\(\x\+\).*','\1','')
-     let @+ = '0x' . hex . printf(' %d 0b%b', eval('0x'.hex), Nr2Bin(a:number))
-     echon '0x' . hex . printf(' %d 0b%b', eval('0x'.hex), Nr2Bin(a:number))
-  else
-     echo "NaN"
-  endif
-endfunction
-
 function! ToggleVerbose()
     if !&verbose
         set verbosefile=$HOME\vim_undo\vb.txt
@@ -685,19 +983,63 @@ function! ToggleVerbose()
     endif
 endfunction
 
-function! SplitData(Prefix, Suffix, NumChars, NewLine)
-  " Splits the content of the buffer into chunks of specified number of chars,
-  " adding the prefix, suffix and newline
-  "
-  " Example: to split a long number (12345678) into 4 digit-sized chunks,
-  " adding the 0x suffix, comma prefix and starting each chunk on a new line,
-  " use the following command:
-  " :call SplitData("0x", ",", 4, 1)
-  if (a:NewLine == 1)
-    let newLine = '\r'
-  else
-    let newLine = ''
-  endif
-
-  :execute '%substitute/\(.\{'.a:NumChars.'\}\)/'.a:Prefix.'\1'.a:Suffix.''.newLine.'/g'
+let s:fontsize = 12
+function! AdjustFontSize(amount)
+  let s:fontsize = s:fontsize+a:amount
+  :execute "GuiFont! Consolas:h" . s:fontsize
 endfunction
+
+noremap <C-ScrollWheelUp> :call AdjustFontSize(1)<CR>
+noremap <C-ScrollWheelDown> :call AdjustFontSize(-1)<CR>
+inoremap <C-ScrollWheelUp> <Esc>:call AdjustFontSize(1)<CR>a
+inoremap <C-ScrollWheelDown> <Esc>:call AdjustFontSize(-1)<CR>a
+
+function! Redir(cmd, rng, start, end)
+  for win in range(1, winnr('$'))
+    if getwinvar(win, 'scratch')
+      execute win . 'windo close'
+    endif
+  endfor
+  if a:cmd =~ '^!'
+    let cmd = a:cmd =~' %'
+      \ ? matchstr(substitute(a:cmd, ' %', ' ' . expand('%:p'), ''), '^!\zs.*')
+      \ : matchstr(a:cmd, '^!\zs.*')
+    if a:rng == 0
+      let output = systemlist(cmd)
+    else
+      let joined_lines = join(getline(a:start, a:end), '\n')
+      let cleaned_lines = substitute(shellescape(joined_lines), "'\\\\''", "\\\\'", 'g')
+      let output = systemlist(cmd . " <<< $" . cleaned_lines)
+    endif
+  else
+    redir => output
+    execute a:cmd
+    redir END
+    let output = split(output, "\n")
+  endif
+  vnew
+  let w:scratch = 1
+  setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile
+  call setline(1, output)
+endfunction
+
+command! -nargs=1 -complete=command -bar -range Redir silent call Redir(<q-args>, <range>, <line1>, <line2>)
+
+function! CopyMatches(reg)
+  let hits = []
+  %s//\=len(add(hits, submatch(0))) ? submatch(0) : ''/gne
+  let reg = empty(a:reg) ? '+' : a:reg
+  execute 'let @'.reg.' = join(hits, "\n") . "\n"'
+endfunction
+command! -register CopyMatches call CopyMatches(<q-reg>)
+
+" }}}
+
+if (has("win32") && (g:configForWork == 1))
+  let userProfile = substitute($USERPROFILE,'\\','/','g')
+
+  " Work specific things
+  source $USERPROFILE/AppData/Local/nvim/eb.vim
+endif
+
+" ex: set foldmethod=marker
