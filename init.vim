@@ -18,6 +18,9 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
+vim.g.mapleader = ' '
+vim.g.maplocalleader = ' '
+
 require("lazy").setup(
 {
   -- TODO: add configs
@@ -27,8 +30,9 @@ require("lazy").setup(
     dependencies = {
       "inkarkat/vim-ingo-library"
     },
-    config = function()
-      -- vim.g.mw_no_mappings = 1
+    init = function()
+        vim.g.mw_no_mappings = 1
+        vim.g.mwDefaultHighlightingPalette = 'extended'
     end,
   },
 
@@ -39,30 +43,24 @@ require("lazy").setup(
       "Olical/vim-enmasse",
       "yssl/QFEnter"
     },
-    config = function()
-    end,
+    init = function()
+        vim.g.FerretAutojump = 0
+        vim.g.FerretHlsearch = 1
+        vim.g.FerretMap = 0
+        vim.g.FerretQFCommands = 0
+    end
   },
 
   {
     "airblade/vim-rooter",
-    lazy = false,
-    config = function()
-    end,
+    init = function()
+      vim.g.rooter_silent_chdir = 1
+      vim.g.rooter_patterns = {'.git', '.svn', 'util', 'plugin.xml'}
+      vim.g.rooter_manual_only = 1
+    end
   },
 
-  {
-      -- TODO: check if I can replace it with Picker, unfortunately seems not
-    "nvim-telescope/telescope.nvim",
-    lazy = false,
-    dependencies = {
-      "nvim-lua/popup.nvim",
-      "nvim-lua/plenary.nvim",
-      "nvim-telescope/telescope-frecency.nvim",
-    },
-    config = function()
-    end,
-  },
-
+  -- {{{ Tabline
   {
     "nanozuki/tabby.nvim",
     lazy = false,
@@ -70,12 +68,62 @@ require("lazy").setup(
       "nvim-tree/nvim-web-devicons",
     },
     config = function()
+      vim.o.showtabline = 2
+      vim.opt.sessionoptions = 'curdir,folds,globals,help,tabpages,terminal,winsize'
+      local theme = {
+        fill = 'TabLineFill',
+        -- Also you can do this: fill = { fg='#f2e9de', bg='#907aa9', style='italic' }
+        head = 'TabLine',
+        -- current_tab = 'TabLineSel',
+        current_tab = { fg = '#F8FBF6', bg = '#896a98', style = 'italic' },
+        tab = 'TabLine',
+        win = 'TabLine',
+        tail = 'TabLine',
+      }
+
+      require('tabby.tabline').set(function(line)
+        return {
+          {
+            line.sep(' ', theme.head, theme.fill),
+          },
+          line.tabs().foreach(function(tab)
+            local hl = tab.is_current() and theme.current_tab or theme.tab
+            return {
+              line.sep(' ', hl, theme.fill),
+              tab.is_current() and '' or '',
+              tab.number(),
+              tab.name(),
+              -- tab.close_btn(''), -- show a close button
+              line.sep(' ', hl, theme.fill),
+              hl = hl,
+              margin = ' ',
+            }
+          end),
+          line.spacer(),
+          --shows list of windows in tab
+          line.wins_in_tab(line.api.get_current_tab()).foreach(function(win)
+            return {
+              line.sep(' ', theme.win, theme.fill),
+              win.is_current() and '' or '',
+              win.buf_name(),
+              line.sep(' ', theme.win, theme.fill),
+              hl = theme.win,
+              margin = ' ',
+            }
+          end),
+          {
+            line.sep(' ', theme.tail, theme.fill),
+          },
+          hl = theme.fill,
+        }
+      end)
     end,
   },
+  -- }}}
 
+  -- {{{ Dial.nvim
   {
     "monaqa/dial.nvim",
-    lazy = false,
     config = function()
       local augend = require("dial.augend")
       require("dial.config").augends:register_group{
@@ -119,36 +167,59 @@ require("lazy").setup(
       end)
     end,
   },
+  -- }}}
 
   {
     "mhinz/vim-signify",
-    -- TODO: ft = ['c', 'xml', 'm4', 'h', 'c.m4', 'h.m4'],
-    config = function()
-    end,
+    ft = {'c', 'xml', 'm4', 'h', 'c.m4', 'h.m4'},
+    init = function()
+      vim.g.signify_disable_by_default = 0
+      vim.g.signify_vcs_list = { 'svn', 'git' }
+    end
   },
 
   {
     "kshenoy/vim-signature",
-    config = function()
-    end,
   },
 
+  -- {{{ todo-comments
   {
     "folke/todo-comments.nvim",
     config = function()
+      require("todo-comments").setup {
+        keywords = {
+          FIX = {
+            icon = " ", -- icon used for the sign, and in search results
+            color = "error", -- can be a hex color, or a named color (see below)
+            alt = { "FIXME", "BUG", "FIXIT", "ISSUE" }, -- a set of other keywords that all map to this FIX keywords
+            -- signs = false, -- configure signs for some keywords individually
+          },
+          TODO = { icon = " ", color = "info" },
+          HACK = { icon = " ", color = "warning" },
+          WARN = { icon = " ", color = "warning", alt = { "WARNING", "XXX" } },
+          PERF = { icon = " ", alt = { "OPTIM", "PERFORMANCE", "OPTIMIZE" } },
+          NOTE = { icon = " ", color = "hint", alt = { "INFO" } },
+          ERROR = { icon = " ", color = "error", alt = { "ERROR" } },
+          TEST = { icon = "⏲ ", color = "test", alt = { "TESTING", "PASSED", "FAILED" } },
+        },
+      }
     end,
   },
+  -- }}}
 
   {
     "AndrewRadev/linediff.vim",
+    cmd = "Linediff",
     config = function()
+      -- TODO: not working, replace it later
+      -- vim.keymap.set("v", "<leader>ld", function()
+      --     vim.call('Linediff')
+      -- end)
     end,
   },
 
   {
     "mbbill/undotree",
-    config = function()
-    end,
   },
 
   -- {"nvim-treesitter/nvim-treesitter", build = ":TSUpdate"},
@@ -163,13 +234,10 @@ require("lazy").setup(
     "marko-cerovac/material.nvim",
     lazy = false,
     priority = 1000,
-    config = function()
-    end,
   },
 
   {
     "nlknguyen/papercolor-theme",
-    lazy = false,
     priority = 1000,
     config = function()
     end,
@@ -177,182 +245,137 @@ require("lazy").setup(
 
   {
     "rakr/vim-one",
-    lazy = false,
     priority = 1000,
     config = function()
     end,
   },
 
+  -- {{ Mini.nvim
   {
     "echasnovski/mini.nvim",
-    lazy = false,
-    config = function()
+    init = function()
+      require('mini.ai').setup()
+
+      require('mini.align').setup({
+        mappings = {
+          start = '<Enter>', -- TODO: think of replacing with ga
+          start_with_preview = 'gA',
+        }
+      })
+
+      require('mini.comment').setup()
+
+      require('mini.jump').setup()
+
+      -- TODO: seems like replacement to MRU - not really, it's project based
+      require('mini.visits').setup()
+      require('mini.pick').setup()
+      require('mini.extra').setup()
+
+      -- TODO:maye do it later
+      --require('mini.completion').setup()
+
+      -- TODO: find a way to enable this as needed, otherwise is annoying
+      -- require('mini.cursorword').setup({
+      --   delay = 700,
+      -- })
+
+      require('mini.pairs').setup()
+
+      -- gS, go split
+      require('mini.splitjoin').setup()
+
+      -- {{{ mini.statusline
+      require('mini.statusline').setup(
+      {
+        -- Content of statusline as functions which return statusline string. See
+        -- `:h statusline` and code of default contents (used instead of `nil`).
+        content = {
+          -- Content for active window
+          active = function()
+            local mode, mode_hl = MiniStatusline.section_mode { trunc_width = 120 }
+            local git = MiniStatusline.section_git { trunc_width = 75 }
+            local diagnostics = MiniStatusline.section_diagnostics { trunc_width = 75 }
+            local filename = MiniStatusline.section_filename { trunc_width = 140 }
+            local fileinfo = MiniStatusline.section_fileinfo { trunc_width = 120 }
+            local location = MiniStatusline.section_location { trunc_width = 75 }
+            local search = MiniStatusline.section_searchcount { trunc_width = 75 }
+            -- vim.opt.laststatus = 3
+
+            return MiniStatusline.combine_groups {
+              { hl = mode_hl },
+              { strings = { mode } },
+              { hl = 'MiniStatuslineInactive', strings = { git, diagnostics, search } },
+              '%=', -- Start center alignment
+              '%<', -- Mark general truncate point
+              { strings = { filename } },
+              '%=', -- start right alignment
+              { hl = 'MiniStatuslineInactive', strings = { fileinfo } },
+              { strings = { location } },
+            }
+          end,
+          inactive = function() end,
+        },
+        set_vim_settings = false,
+      })
+      -- }}}
+
+      require('mini.surround').setup({
+        mappings = {
+          add = 'S', -- Add surrounding in Normal and Visual modes
+          delete = 'ds', -- Delete surrounding
+          find = 'sf', -- Find surrounding (to the right)
+          find_left = 'sF', -- Find surrounding (to the left)
+          highlight = 'sh', -- Highlight surrounding
+          replace = 'sr', -- Replace surrounding
+          update_n_lines = 'sn', -- Update `n_lines`
+
+          suffix_last = 'l', -- Suffix to search with "prev" method
+          suffix_next = 'n', -- Suffix to search with "next" method
+        },
+      })
     end,
+
+    vim.keymap.set("n", "<leader>n", function()
+          MiniPick.builtin.files({}, {
+            source = {
+              cwd = vim.call('FindRootDirectory'),
+            },
+          })
+        end, { desc = "Find files in project" })
   },
+  -- }}
 
   {
     "dstein64/vim-startuptime",
     -- lazy-load on a command
     cmd = "StartupTime",
-    -- init is called during startup. Configuration for vim plugins typically should be set in an init function
     init = function()
       vim.g.startuptime_tries = 10
     end,
   },
 
-  -- if some code requires a module from an unloaded plugin, it will be automatically loaded.
-  -- So for api plugins like devicons, we can always set lazy=true
-  { "nvim-tree/nvim-web-devicons", lazy = true },
-
   {'akinsho/toggleterm.nvim', version = "*", config = true},
 
   {
      "folke/trouble.nvim",
+     cmd = "Trouble",
      dependencies = { "nvim-tree/nvim-web-devicons" },
      opts = {},
   },
 
+  {
+     "ctrlpvim/ctrlp.vim",
+  },
 
 }
 )
 -- Mini.nvim
-require('mini.ai').setup()
-
-require('mini.align').setup({
-  mappings = {
-    start = '<Enter>', -- TODO: think of replacing with ga
-    start_with_preview = 'gA',
-  }
-})
-
-require('mini.comment').setup()
-
-require('mini.jump').setup()
-
--- TODO: seems like replacement to MRU - not really, it's project based
-require('mini.visits').setup()
-require('mini.pick').setup()
-require('mini.extra').setup()
-
--- TODO:maye do it later
---require('mini.completion').setup()
 --
 --local lspconfig = require('lspconfig')
 --lspconfig.clangd.setup{
 --  on_attach = aerial.on_attach,
 --}
-
--- TODO: find a way to enable this as needed, otherwise is annoying
--- require('mini.cursorword').setup({
---   delay = 700,
--- })
-
-require('mini.pairs').setup()
-
--- gS, go split
-require('mini.splitjoin').setup()
-
--- {{{ mini.statusline
-require('mini.statusline').setup(
-{
-  -- Content of statusline as functions which return statusline string. See
-  -- `:h statusline` and code of default contents (used instead of `nil`).
-  content = {
-    -- Content for active window
-    active = function()
-      local mode, mode_hl = MiniStatusline.section_mode { trunc_width = 120 }
-      local git = MiniStatusline.section_git { trunc_width = 75 }
-      local diagnostics = MiniStatusline.section_diagnostics { trunc_width = 75 }
-      local filename = MiniStatusline.section_filename { trunc_width = 140 }
-      local fileinfo = MiniStatusline.section_fileinfo { trunc_width = 120 }
-      local location = MiniStatusline.section_location { trunc_width = 75 }
-      local search = MiniStatusline.section_searchcount { trunc_width = 75 }
-      -- vim.opt.laststatus = 3
-
-      return MiniStatusline.combine_groups {
-        { hl = mode_hl },
-        { strings = { mode } },
-        { hl = 'MiniStatuslineInactive', strings = { git, diagnostics, search } },
-        '%=', -- Start center alignment
-        '%<', -- Mark general truncate point
-        { strings = { filename } },
-        '%=', -- start right alignment
-        { hl = 'MiniStatuslineInactive', strings = { fileinfo } },
-        { strings = { location } },
-      }
-    end,
-    inactive = function() end,
-  },
-  set_vim_settings = false,
-})
--- }}}
-
-require('mini.surround').setup({
-  mappings = {
-    add = 'S', -- Add surrounding in Normal and Visual modes
-    delete = 'ds', -- Delete surrounding
-    find = 'sf', -- Find surrounding (to the right)
-    find_left = 'sF', -- Find surrounding (to the left)
-    highlight = 'sh', -- Highlight surrounding
-    replace = 'sr', -- Replace surrounding
-    update_n_lines = 'sn', -- Update `n_lines`
-
-    suffix_last = 'l', -- Suffix to search with "prev" method
-    suffix_next = 'n', -- Suffix to search with "next" method
-  },
-})
-
--- {{{Tabline
-vim.o.showtabline = 2
-vim.opt.sessionoptions = 'curdir,folds,globals,help,tabpages,terminal,winsize'
-local theme = {
-  fill = 'TabLineFill',
-  -- Also you can do this: fill = { fg='#f2e9de', bg='#907aa9', style='italic' }
-  head = 'TabLine',
-  -- current_tab = 'TabLineSel',
-  current_tab = { fg = '#F8FBF6', bg = '#896a98', style = 'italic' },
-  tab = 'TabLine',
-  win = 'TabLine',
-  tail = 'TabLine',
-}
-
-require('tabby.tabline').set(function(line)
-  return {
-    {
-      line.sep(' ', theme.head, theme.fill),
-    },
-    line.tabs().foreach(function(tab)
-      local hl = tab.is_current() and theme.current_tab or theme.tab
-      return {
-        line.sep(' ', hl, theme.fill),
-        tab.is_current() and '' or '',
-        tab.number(),
-        tab.name(),
-        -- tab.close_btn(''), -- show a close button
-        line.sep(' ', hl, theme.fill),
-        hl = hl,
-        margin = ' ',
-      }
-    end),
-    line.spacer(),
-    --shows list of windows in tab
-    line.wins_in_tab(line.api.get_current_tab()).foreach(function(win)
-      return {
-        line.sep(' ', theme.win, theme.fill),
-        win.is_current() and '' or '',
-        win.buf_name(),
-        line.sep(' ', theme.win, theme.fill),
-        hl = theme.win,
-        margin = ' ',
-      }
-    end),
-    {
-      line.sep(' ', theme.tail, theme.fill),
-    },
-    hl = theme.fill,
-  }
-end)
--- }}}
 
 -- require'nvim-treesitter.install'.compilers = { "clang" }
 -- require'nvim-treesitter.configs'.setup {
@@ -404,114 +427,11 @@ vim.g.loaded_netrwPlugin = 1
 -- optionally enable 24-bit colour
 vim.opt.termguicolors = true
 
--- local neogit = require('neogit')
--- neogit.setup {}
-
-require('telescope').setup{
-  defaults = {
-    mappings = {
-      i = {
-        ['<C-p>'] = require('telescope.actions.layout').toggle_preview
-      }
-    },
-    preview = {
-      hide_on_startup = true -- hide previewer when picker starts
-    }
-  },
-  pickers = {
-    -- Default configuration for builtin pickers goes here:
-    -- picker_name = {
-    --   picker_config_key = value,
-    --   ...
-    -- }
-    -- Now the picker_config_key will be applied every time you call this
-    -- builtin picker
-  },
-  extensions = {
-    frecency = {
-      show_scores = false,
-      show_unindexed = true,
-      ignore_patterns = { "*.git/*", "*/tmp/*" },
-      disable_devicons = false,
-    },
-  },
-}
-
-require("telescope").load_extension "frecency"
-
--- TODO: check the above comment about trouble
--- local actions = require("telescope.actions")
--- local trouble = require("trouble.providers.telescope")
--- 
--- local telescope = require("telescope")
--- 
--- telescope.setup {
---   defaults = {
---     mappings = {
---       i = { ["<c-t>"] = trouble.open_with_trouble },
---       n = { ["<c-t>"] = trouble.open_with_trouble },
---     },
---   },
--- }
-
--- require("fzf-lua").setup({})
-
--- -- Repeat this for each language server you have configured
--- require("nvim-surround").setup {
---     -- Configuration here, or leave empty to use defaults
--- }
-
--- Plug 'folke/todo-comments.nvim'
-require("todo-comments").setup {
-  keywords = {
-    FIX = {
-      icon = " ", -- icon used for the sign, and in search results
-      color = "error", -- can be a hex color, or a named color (see below)
-      alt = { "FIXME", "BUG", "FIXIT", "ISSUE" }, -- a set of other keywords that all map to this FIX keywords
-      -- signs = false, -- configure signs for some keywords individually
-    },
-    TODO = { icon = " ", color = "info" },
-    HACK = { icon = " ", color = "warning" },
-    WARN = { icon = " ", color = "warning", alt = { "WARNING", "XXX" } },
-    PERF = { icon = " ", alt = { "OPTIM", "PERFORMANCE", "OPTIMIZE" } },
-    NOTE = { icon = " ", color = "hint", alt = { "INFO" } },
-    ERROR = { icon = " ", color = "error", alt = { "ERROR" } },
-    TEST = { icon = "⏲ ", color = "test", alt = { "TESTING", "PASSED", "FAILED" } },
-},
-  }
-
--- Use (s-)tab to:
---- move to prev/next item in completion menuone
---- jump to prev/next snippet's placeholder
-_G.tab_complete = function()
-  if vim.fn.pumvisible() == 1 then
-    return t "<C-n>"
-  elseif check_back_space() then
-    return t "<Tab>"
-  else
-    return vim.fn['compe#complete']()
-  end
-end
-_G.s_tab_complete = function()
-  if vim.fn.pumvisible() == 1 then
-    return t "<C-p>"
-  else
-    return t "<S-Tab>"
-  end
-end
-
-vim.api.nvim_set_keymap("i", "<Tab>", "v:lua.tab_complete()", {expr = true})
-vim.api.nvim_set_keymap("s", "<Tab>", "v:lua.tab_complete()", {expr = true})
-vim.api.nvim_set_keymap("i", "<S-Tab>", "v:lua.s_tab_complete()", {expr = true})
-vim.api.nvim_set_keymap("s", "<S-Tab>", "v:lua.s_tab_complete()", {expr = true})
-
 if vim.g.neovide then
   vim.g.neovide_fullscreen = false
   vim.g.neovide_cursor_animation_length = 0
 end
-
 EOF
-
 " }}}
 
 " {{{ Editior settings
@@ -685,7 +605,7 @@ set dictionary+=$HOME\words.txt
 " {{{ Mappings
 
 " Leader mappings
-let mapleader = "\<Space>"
+" let mapleader = "\<Space>"
 nnoremap <Leader>sz :set scb!<CR> " syncronized scroll
 nnoremap <Leader>db :call DeleteInactiveBufs()<CR>
 nnoremap <Leader>dd :diffthis<CR>
@@ -693,8 +613,7 @@ nnoremap <Leader>do :diffoff<CR>
 nnoremap <Leader>dp :diffput<CR>
 nnoremap <Leader>dg :diffget<CR>
 nnoremap <Leader>du :diffupdate<CR>
-" nnoremap <Leader>m  :CtrlPMRUFiles<CR>
-nnoremap <Leader>m  :Telescope frecency<CR>
+nnoremap <Leader>m  :CtrlPMRUFiles<CR>
 nnoremap <Leader>st :call StripTrailingWhitespaces()<cr>
 nnoremap <Leader>sw :set wrap!<CR>
 nnoremap <Leader>tc :tabclose<CR>
@@ -710,7 +629,6 @@ nnoremap <Leader>e  :Ack  <C-R>=FindRootDirectory()<CR>\<C-Left><C-Left><C-Left>
 nnoremap <Leader>r  :Ack <C-R><C-W> <C-R>=FindRootDirectory()<CR><C-Left><C-Left><C-Left><C-Left><C-Right><Right><CR>
 
 vmap <Leader>ld :Linediff<CR>
-vmap ;' V'<O#if 0<Esc>'>o#endif<Esc>
 nnoremap <C-s> :w<CR>
 
 imap jj <Esc>
@@ -858,24 +776,13 @@ endfunction
 " {{{ Plugins
 
 " Plug 'inkarkat/vim-mark'
-let g:mw_no_mappings = 1
+" let g:mw_no_mappings = 1
 
-" TODO: candidate for replacement
-nnoremap <leader>n <cmd>lua require('telescope.builtin').find_files({
-\   prompt_title = "Project files",
-\   previewer = false,
-\   cwd = vim.call('FindRootDirectory')
-\ })<CR>
-
-" Plug 'mhinz/vim-signify'
-let g:signify_disable_by_default = 0
-let g:signify_vcs_list = [ 'svn', 'git' ]
-
-" " Plug 'ctrlpvim/ctrlp.vim'
-" " TODO: candidate for replacement. Seems frecency is a good one
-" let g:ctrlp_max_history = 4000
-" let g:ctrlp_user_command = 'rg %s --files --color=never --glob ""'
-" let g:ctrlp_use_caching = 0
+" Plug 'ctrlpvim/ctrlp.vim'
+" TODO: candidate for replacement. Seems frecency is a good one
+let g:ctrlp_max_history = 4000
+let g:ctrlp_user_command = 'rg %s --files --color=never --glob ""'
+let g:ctrlp_use_caching = 0
 
 " Plug 'yssl/QFEnter' " quickfix options and mappings
 let g:qfenter_keymap = {}
@@ -898,15 +805,8 @@ augroup vimrc_vaffle
   autocmd FileType vaffle call s:customize_vaffle_mappings()
 augroup END
 
-" Plug 'airblade/vim-rooter'
-let g:rooter_silent_chdir = 1
-let g:rooter_patterns = ['.git', '.svn', 'util', 'plugin.xml']
-let g:rooter_manual_only = 1
-
 " Plug 'wincent/ferret'
-let g:FerretAutojump = 0
-let g:FerretHlsearch = 1
-let g:FerretMap=0
+" TODO: do this in lua
 let g:FerretExecutableArguments = {
       \   'rg': '-H -S --sort path --column --line-number --no-heading --ignore-file '.$USERPROFILE.'/ignore'
       \ }
