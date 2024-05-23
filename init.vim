@@ -1,10 +1,20 @@
-if has("win32")
-let g:configForWork = 1
-endif
-
-" {{{ Plugins func
-
 lua << EOF
+if vim.fn.has("win32") == 1 then
+  vim.g.configForWork        = 1
+  vim.g.python3_host_prog    = 'C:/ProgramData/chocolatey/bin/python3.12.EXE'
+  vim.g.python_host_prog     = 'C:/Python27/python.exe'
+  vim.g.loaded_perl_provider = 0
+  vim.g.loaded_node_provider = 0
+  vim.g.loaded_ruby_provider = 0
+end
+
+vim.g.mapleader      = ' '
+vim.g.maplocalleader = ' '
+
+local root_patterns = {'.git', '.svn', 'util', 'plugin.xml'}
+
+-- {{{ Plugins func
+
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
   vim.fn.system({
@@ -18,15 +28,12 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
-vim.g.mapleader = ' '
-vim.g.maplocalleader = ' '
-
 require("lazy").setup(
 {
-  -- TODO: add configs
   {
     "inkarkat/vim-mark",
     lazy = false,
+    event = "VeryLazy",
     dependencies = {
       "inkarkat/vim-ingo-library"
     },
@@ -38,25 +45,63 @@ require("lazy").setup(
 
   {
     "wincent/ferret",
-    lazy = false,
-    dependencies = {
-      "Olical/vim-enmasse",
-      "yssl/QFEnter"
-    },
+    enabled = false,
     init = function()
         vim.g.FerretAutojump = 0
         vim.g.FerretHlsearch = 1
         vim.g.FerretMap = 0
         vim.g.FerretQFCommands = 0
+        vim.g.FerretExecutableArguments = {
+          rg = '-H -S --sort path --column --line-number --no-heading --ignore-file ~/ignore'
+        }
     end
   },
 
   {
+    'kevinhwang91/nvim-bqf',
+    ft = 'qf',
+    init = function()
+      vim.cmd([[
+          hi BqfPreviewBorder guifg=#3e8e2d ctermfg=71
+          hi BqfPreviewTitle guifg=#3e8e2d ctermfg=71
+          hi BqfPreviewThumb guibg=#3e8e2d ctermbg=71
+          hi link BqfPreviewRange Search
+      ]])
+
+      require('bqf').setup({
+          preview = {
+              win_height = 35,
+              winblend = 5,
+          },
+      })
+    end
+  },
+
+  {
+    "mangelozzi/nvim-rgflow.lua",
+    init = function()
+    require("rgflow").setup(
+    {
+        default_trigger_mappings  = false,
+        default_ui_mappings       = true,
+        default_quickfix_mappings = true,
+
+        cmd_flags = ("--smart-case -H -S --sort path --column --line-number --no-heading --ignore-file "..os.getenv("USERPROFILE").."/ignore")
+    })
+    end
+  },
+
+  { "Olical/vim-enmasse", cmd = "EnMasse" },
+
+  { "yssl/QFEnter", enabled = false },
+
+  {
     "airblade/vim-rooter",
+    enabled = false,
     init = function()
       vim.g.rooter_silent_chdir = 1
-      vim.g.rooter_patterns = {'.git', '.svn', 'util', 'plugin.xml'}
-      vim.g.rooter_manual_only = 1
+      vim.g.rooter_patterns     = {'.git', '.svn', 'util', 'plugin.xml'}
+      vim.g.rooter_manual_only  = 1
     end
   },
 
@@ -90,10 +135,10 @@ require("lazy").setup(
             local hl = tab.is_current() and theme.current_tab or theme.tab
             return {
               line.sep(' ', hl, theme.fill),
-              tab.is_current() and '' or '',
+              tab.is_current() and '» ' or ' ',
               tab.number(),
               tab.name(),
-              -- tab.close_btn(''), -- show a close button
+              tab.close_btn('x'), -- show a close button
               line.sep(' ', hl, theme.fill),
               hl = hl,
               margin = ' ',
@@ -104,7 +149,7 @@ require("lazy").setup(
           line.wins_in_tab(line.api.get_current_tab()).foreach(function(win)
             return {
               line.sep(' ', theme.win, theme.fill),
-              win.is_current() and '' or '',
+              win.is_current() and '»' or ' ',
               win.buf_name(),
               line.sep(' ', theme.win, theme.fill),
               hl = theme.win,
@@ -124,6 +169,7 @@ require("lazy").setup(
   -- {{{ Dial.nvim
   {
     "monaqa/dial.nvim",
+    event = "VeryLazy",
     config = function()
       local augend = require("dial.augend")
       require("dial.config").augends:register_group{
@@ -171,6 +217,7 @@ require("lazy").setup(
 
   {
     "mhinz/vim-signify",
+    enabled=false,
     ft = {'c', 'xml', 'm4', 'h', 'c.m4', 'h.m4'},
     init = function()
       vim.g.signify_disable_by_default = 0
@@ -178,9 +225,8 @@ require("lazy").setup(
     end
   },
 
-  {
-    "kshenoy/vim-signature",
-  },
+
+  { "kshenoy/vim-signature", event = "VeryLazy" },
 
   -- {{{ todo-comments
   {
@@ -207,48 +253,74 @@ require("lazy").setup(
   },
   -- }}}
 
+  { "AndrewRadev/linediff.vim", cmd = "Linediff" },
+
+  { "mbbill/undotree" },
+
+  -- {{{ Treesitter
   {
-    "AndrewRadev/linediff.vim",
-    cmd = "Linediff",
-    config = function()
-      -- TODO: not working, replace it later
-      -- vim.keymap.set("v", "<leader>ld", function()
-      --     vim.call('Linediff')
-      -- end)
+    "nvim-treesitter/nvim-treesitter",
+    version = false,
+    build = ":TSUpdate",
+    event = { "VeryLazy" },
+    lazy = vim.fn.argc(-1) == 0, -- load treesitter early when opening a file from the cmdline
+    init = function(plugin)
+      require("lazy.core.loader").add_to_rtp(plugin)
+      require("nvim-treesitter.query_predicates")
     end,
+    cmd = { "TSUpdateSync", "TSUpdate", "TSInstall" },
+    keys = {
+      { "<c-space>", desc = "Increment Selection" },
+      { "<bs>", desc = "Decrement Selection", mode = "x" },
+    },
+    opts = {
+      highlight = { enable = true },
+      indent = { enable = false },
+      ensure_installed = {
+        "bash",
+        "c",
+        "diff",
+        "html",
+        "javascript",
+        "jsdoc",
+        "json",
+        "jsonc",
+        "lua",
+        "luadoc",
+        "luap",
+        "markdown",
+        "markdown_inline",
+        "python",
+        "query",
+        "regex",
+        "toml",
+        "tsx",
+        "typescript",
+        "vim",
+        "vimdoc",
+        "xml",
+        "yaml",
+      },
+    },
   },
-
-  {
-    "mbbill/undotree",
-  },
-
-  -- {"nvim-treesitter/nvim-treesitter", build = ":TSUpdate"},
+  -- }}}
 
   {
     "cocopon/vaffle.vim",
-    config = function()
-    end,
+    init = function()
+      local function customize_vaffle_mappings()
+        vim.api.nvim_buf_set_keymap(0, 'n', 'U', '<Plug>(vaffle-open-root)', { noremap = false, silent = true })
+        vim.api.nvim_buf_set_keymap(0, 'n', 'u', '<Plug>(vaffle-open-parent)', { noremap = false, silent = true })
+      end
+
+      vim.api.nvim_create_augroup('vimrc_vaffle', { clear = true })
+      vim.api.nvim_create_autocmd('FileType', { group = 'vimrc_vaffle', pattern = 'vaffle', callback = customize_vaffle_mappings })
+    end
   },
 
-  {
-    "marko-cerovac/material.nvim",
-    lazy = false,
-    priority = 1000,
-  },
+  { "nlknguyen/papercolor-theme", priority = 1000 },
 
-  {
-    "nlknguyen/papercolor-theme",
-    priority = 1000,
-    config = function()
-    end,
-  },
-
-  {
-    "rakr/vim-one",
-    priority = 1000,
-    config = function()
-    end,
-  },
+  { "rakr/vim-one", priority = 1000 },
 
   -- {{ Mini.nvim
   {
@@ -275,14 +347,9 @@ require("lazy").setup(
       -- TODO:maye do it later
       --require('mini.completion').setup()
 
-      -- TODO: find a way to enable this as needed, otherwise is annoying
-      -- require('mini.cursorword').setup({
-      --   delay = 700,
-      -- })
-
       require('mini.pairs').setup()
 
-      -- gS, go split
+      -- gS, go split TODO: it seems it removes characters
       require('mini.splitjoin').setup()
 
       -- {{{ mini.statusline
@@ -320,6 +387,7 @@ require("lazy").setup(
       })
       -- }}}
 
+      -- {{{ mini.surround
       require('mini.surround').setup({
         mappings = {
           add = 'S', -- Add surrounding in Normal and Visual modes
@@ -334,91 +402,298 @@ require("lazy").setup(
           suffix_next = 'n', -- Suffix to search with "next" method
         },
       })
+      -- }}}
+
+      require('mini.diff').setup()
+      vim.keymap.set('n', '<leader>go', ':lua MiniDiff.toggle_overlay()<CR>', { desc = 'Toggle Diff Overlay' })
+
+      -- TODO: replace tabby with this one after removing the buffers from the tab
+      -- require('mini.tabline').setup({})
+
+      require('mini.splitjoin').setup()
+
     end,
 
     vim.keymap.set("n", "<leader>n", function()
           MiniPick.builtin.files({}, {
             source = {
-              cwd = vim.call('FindRootDirectory'),
+              cwd = vim.fs.root(0, root_patterns),
             },
           })
         end, { desc = "Find files in project" })
+
   },
   -- }}
 
   {
     "dstein64/vim-startuptime",
-    -- lazy-load on a command
     cmd = "StartupTime",
     init = function()
       vim.g.startuptime_tries = 10
     end,
   },
 
-  {'akinsho/toggleterm.nvim', version = "*", config = true},
+  {
+    'akinsho/toggleterm.nvim',
+    event = "VeryLazy",
+    version = "*",
+    config = true
+  },
 
   {
      "folke/trouble.nvim",
+     enabled=false,
      cmd = "Trouble",
      dependencies = { "nvim-tree/nvim-web-devicons" },
      opts = {},
   },
 
   {
-     "ctrlpvim/ctrlp.vim",
+      "ctrlpvim/ctrlp.vim",
+      init = function()
+        vim.g.ctrlp_max_history = 4000
+        vim.g.ctrlp_user_command = 'rg %s --files --color=never --glob ""'
+        vim.g.ctrlp_use_caching = 0
+      end,
+  },
+
+  {
+    "folke/which-key.nvim",
+    event = "VeryLazy",
+    init = function()
+      vim.o.timeout = true
+      vim.o.timeoutlen = 900
+    end,
+    opts = {}
+  },
+
+  {
+    "nvim-pack/nvim-spectre",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    build = false,
+    cmd = "Spectre",
+    opts = { open_cmd = "noswapfile vnew" },
+    -- stylua: ignore
+    keys = {
+      { "<leader>sr", function() require("spectre").open() end, desc = "Replace in Files (Spectre)" },
+    },
+  },
+
+  {
+    "lukas-reineke/indent-blankline.nvim",
+    event = "VeryLazy",
+    opts = {
+      indent = {
+        char = "│",
+        tab_char = "│",
+      },
+      scope = { show_start = false, show_end = false },
+      exclude = {
+        filetypes = {
+          "help",
+          "alpha",
+          "dashboard",
+          "neo-tree",
+          "Trouble",
+          "trouble",
+          "lazy",
+          "mason",
+          "notify",
+          "toggleterm",
+          "lazyterm",
+        },
+      },
+    },
+    main = "ibl",
+  },
+
+  {
+    "folke/persistence.nvim",
+    event = "BufReadPre",
+    opts = { options = vim.opt.sessionoptions:get() },
+    keys = {
+      { "<leader>qs", function() require("persistence").load() end, desc = "Restore Session" },
+      { "<leader>ql", function() require("persistence").load({ last = true }) end, desc = "Restore Last Session" },
+      { "<leader>qd", function() require("persistence").stop() end, desc = "Don't Save Current Session" },
+    },
+  },
+
+  {
+    "tenxsoydev/size-matters.nvim",
+    init = function()
+      require("size-matters").setup()
+    end,
   },
 
 }
 )
--- Mini.nvim
---
---local lspconfig = require('lspconfig')
---lspconfig.clangd.setup{
---  on_attach = aerial.on_attach,
---}
+-- }}}
 
--- require'nvim-treesitter.install'.compilers = { "clang" }
--- require'nvim-treesitter.configs'.setup {
---   -- A list of parser names, or "all" (the five listed parsers should always be installed)
---   ensure_installed = { "c", "lua", "vim", "python"},
+-- {{{ Mappings
+
+vim.keymap.set("n", "<leader>r", function()
+   require('rgflow').open(vim.fn.expand("<cword>"), nil, vim.fs.root(0, root_patterns), nil)
+end, {noremap = true})
+
+vim.keymap.set("n", "<leader>e", function()
+   require('rgflow').open(nil, nil, vim.fs.root(0, root_patterns), nil)
+end, {noremap = true})
+
+local map = vim.api.nvim_set_keymap
+local opts = { noremap = true, silent = true }
+
+-- Synchronized scroll
+map('n', '<Leader>sz', ':set scb!<CR>', opts)
+
+-- Delete inactive buffers
+map('n', '<Leader>db', ':call DeleteInactiveBufs()<CR>', opts)
+
+map('n', '<Leader>dd', ':diffthis<CR>', opts)
+map('n', '<Leader>do', ':diffoff<CR>', opts)
+map('n', '<Leader>dp', ':diffput<CR>', opts)
+map('n', '<Leader>dg', ':diffget<CR>', opts)
+map('n', '<Leader>du', ':diffupdate<CR>', opts)
+map('v', '<Leader>ld', ':Linediff<CR>', opts)
+
+map('n', '<Leader>m', ':CtrlPMRUFiles<CR>', opts)
+map('n', '<Leader>st', ':call StripTrailingWhitespaces()<CR>', opts)
+map('n', '<Leader>sw', ':set wrap!<CR>', opts)
+map('n', '<Leader>tc', ':tabclose<CR>', opts)
+map('n', '<Leader>tn', ':tabnew<CR>', opts)
+map('n', '<Leader>/', ':nohlsearch<CR>', opts)
+map('n', '<Leader>c', ':call ToggleColorColumn()<CR>', opts)
+map('n', '<leader>S', ':Pick spellsuggest<CR>', opts)
+map('n', '<leader>ov', ':exe ":silent !code %"<CR>:redraw!<CR>', opts)
+
+-- Ack current word
+-- local rootDir = vim.fn["FindRootDirectory"]()
+-- map('n', '<Leader>e', ':Ack  <C-R>='..rootDir..'<C-Left><C-Left><C-Left><C-Left><C-Right><Right>', opts)
 --
---   -- Install parsers synchronously (only applied to `ensure_installed`)
---   sync_install = false,
---
---   -- Automatically install missing parsers when entering buffer
---   -- Recommendation: set to false if you don't have `tree-sitter` CLI installed locally
---   auto_install = false,
---
---   -- List of parsers to ignore installing (or "all")
---   ignore_install = { "javascript" },
---
---   ---- If you need to change the installation directory of the parsers (see -> Advanced Setup)
---   -- parser_install_dir = "/some/path/to/store/parsers", -- Remember to run vim.opt.runtimepath:append("/some/path/to/store/parsers")!
---
---   highlight = {
---     enable = true,
---
---     -- NOTE: these are the names of the parsers and not the filetype. (for example if you want to
---     -- disable highlighting for the `tex` filetype, you need to include `latex` in this list as this is
---     -- the name of the parser)
---     -- list of language that will be disabled
---     disable = { "rust" },
---     -- Or use a function for more flexibility, e.g. to disable slow treesitter highlight for large files
---     disable = function(lang, buf)
---         local max_filesize = 100 * 1024 -- 100 KB
---         local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
---         if ok and stats and stats.size > max_filesize then
---             return true
---         end
---     end,
---
---     -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
---     -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
---     -- Using this option may slow down your editor, and you may see some duplicate highlights.
---     -- Instead of true it can also be a list of languages
---     additional_vim_regex_highlighting = true,
---   },
--- }
+-- -- Ack word under cursor
+-- map('n', '<Leader>r', ':Ack <C-R><C-W> <C-R>=FindRootDirectory()<CR><C-Left><C-Left><C-Left><C-Left><C-Right><Right><CR>', opts)
+
+-- Remap jj to <Esc> in insert mode
+map('i', 'jj', '<Esc>', {noremap = true})
+
+-- Paste from clipboard in insert mode
+map('i', '<S-Insert>', '<C-R>+', opts)
+
+-- Replace the selection with the buffer
+map('v', 'r', '"_dp', opts)
+
+-- Change into the black hole register to not clobber the last yank
+map('n', 'c', '"_c', opts)
+
+-- Select last visual block
+map('n', 'gp', '`[v`]', opts)
+
+-- Find file under cursor in the same window
+map('n', 'gf', 'gF', opts)
+
+-- Replace a word with yanked text
+map('n', '<leader>rp', 'viw"0p', opts)
+
+-- Navigate 5x faster when holding down Ctrl
+map('n', '<C-j>', '5j', { noremap = true })
+map('n', '<C-k>', '5k', { noremap = true })
+map('n', '<C-h>', '5h', { noremap = true })
+map('n', '<C-l>', '5l', { noremap = true })
+map('v', '<C-j>', '5j', { noremap = true })
+map('v', '<C-k>', '5k', { noremap = true })
+map('v', '<C-h>', '5h', { noremap = true })
+map('v', '<C-l>', '5l', { noremap = true })
+
+-- Move normally between wrapped lines
+map('n', 'j', 'gj', { noremap = true })
+map('n', 'k', 'gk', { noremap = true })
+
+-- Window navigation
+map('n', '<A-k>', ':wincmd k<CR>', opts)
+map('n', '<A-j>', ':wincmd j<CR>', opts)
+map('n', '<A-h>', ':wincmd h<CR>', opts)
+map('n', '<A-l>', ':wincmd l<CR>', opts)
+map('t', '<A-k>', '<C-\\><C-N>:wincmd k<CR>', opts)
+map('t', '<A-j>', '<C-\\><C-N>:wincmd j<CR>', opts)
+map('t', '<A-h>', '<C-\\><C-N>:wincmd h<CR>', opts)
+map('t', '<A-l>', '<C-\\><C-N>:wincmd l<CR>', opts)
+
+-- To map <Esc> to exit terminal-mode
+map('t', '<Esc>', '<C-\\><C-n>', opts)
+
+-- Resize windows
+map('n', '<S-k>', ':resize +5<CR>', opts)
+map('n', '<S-j>', ':resize -5<CR>', opts)
+map('n', '<S-l>', ':vertical resize +5<CR>', opts)
+map('n', '<S-h>', ':vertical resize -5<CR>', opts)
+
+-- Go to previous visited locations
+map('n', '<C-t>', '<C-o>', opts)
+map('n', '<A-Left>', '<C-o>', opts)
+map('n', '<A-Right>', '<C-i>', opts)
+
+-- Buffer navigation
+map('n', ']b', ':bnext<CR>', opts)
+map('n', '[b', ':bprevious<CR>', opts)
+
+map('n', ']t', ':tabnext<CR>', opts)
+map('n', '[t', ':tabprevious<CR>', opts)
+
+map('n', ']l', ':lnext<CR>', opts)
+map('n', '[l', ':lprev<CR>', opts)
+map('n', '<C-Down>', ']c', opts)
+map('n', '<C-Up>', '[c', opts)
+
+-- Faster indentation
+map('n', '>', '>>', opts)
+map('n', '<', '<<', opts)
+
+-- F* mappings
+map('n', '<F2>', ':cprevious<CR>', opts)
+map('n', '<F3>', ':cnext<CR>', opts)
+map('n', '<F10>', ':call ToggleNumber()<CR>', opts)
+
+-- Play macros with Q
+map('n', 'Q', '@a', opts)
+map('v', 'Q', ':norm @a<CR>', opts)
+map('n', 'qq', 'ZZ<CR>', opts)
+
+-- Search but don't jump to the next word
+map('n', '*', '*``', opts)
+
+-- Fix for legacy vi inconsistency
+map('n', 'Y', 'y$', opts)
+
+-- Remap VIM 0 to first non-blank character
+map('n', '0', '^', opts)
+
+-- }}}
+
+-- {{{ Scratchpad
+local function scratch()
+  vim.bo.buftype = 'nofile'
+  vim.bo.bufhidden = 'hide'
+  vim.bo.swapfile = false
+end
+
+vim.api.nvim_create_user_command('Scratch', function() vim.cmd('enew') scratch() end, { nargs = 0 })
+vim.api.nvim_create_user_command('SScratch', function() vim.cmd('split') vim.cmd('enew') scratch() end, { nargs = 0 })
+vim.api.nvim_create_user_command('VScratch', function() vim.cmd('vsplit') vim.cmd('enew') scratch() end, { nargs = 0 })
+-- }}}
+
+-- TODO: replace vim-rooter
+local augroup = vim.api.nvim_create_augroup('AutoCD', {})
+
+vim.api.nvim_create_autocmd({ 'VimEnter', 'BufEnter', 'BufReadPost' }, {
+    desc = 'Automatically change current directory by matching root pattern',
+    group = augroup,
+    callback = function(args)
+        local root = vim.fs.root(vim.api.nvim_buf_get_name(args.buf), root_patterns)
+
+        if root ~= nil then
+            vim.api.nvim_set_current_dir(root)
+        end
+    end,
+})
 
 -- disable netrw at the very start of your init.lua
 vim.g.loaded_netrw = 1
@@ -432,13 +707,11 @@ if vim.g.neovide then
   vim.g.neovide_cursor_animation_length = 0
 end
 EOF
-" }}}
 
 " {{{ Editior settings
 
 " Boost performance of rendering long lines
 set synmaxcol=300
-
 
 " How many lines to scroll at a time, make scrolling appears faster
 " set scrolljump=5
@@ -452,12 +725,6 @@ if (has("termguicolors"))
 endif
 
 syntax on
-
-" Plug 'marko-cerovac/material.nvim'
-let g:material_contrast = v:true
-let g:material_style = 'darker'
-set background=light
-colorscheme material
 
 colorscheme one
 
@@ -488,8 +755,8 @@ set undolevels=10000
 set undoreload=10000
 
 " set the locaiton for swp files
-set directory=$HOME\vim_undo
-set backupdir=$HOME\vim_undo
+" set directory=~/vim_undo
+" set backupdir=~/vim_undo
 
 " search
 set hlsearch
@@ -553,6 +820,7 @@ let g:loaded_zipPlugin         = 1
 let g:loaded_tutor_mode_plugin = 1
 let g:loaded_tarPlugin         = 1
 let g:loaded_vimballPlugin     = 1
+let g:loaded_matchit           = 1
 
 " show the current line
 set cul
@@ -571,26 +839,6 @@ if exists('&inccommand')
   set inccommand=nosplit
 endif
 
-" autoreads
-" set autoread
-" autocmd FocusGained,CursorHold ?* if getcmdwintype() == '' | checktime | endif
-
-" set autoread
-" " TODO: check what's with this
-" augroup checktime
-"     au!
-"     if !has("gui_running")
-"         "silent! necessary otherwise throws errors when using command
-"         "line window.
-"         autocmd BufEnter        * silent! checktime
-"         autocmd CursorHold      * silent! checktime
-"         autocmd CursorHoldI     * silent! checktime
-"         "these two _may_ slow things down. Remove if they do.
-"         " autocmd CursorMoved     * silent! checktime
-"         " autocmd CursorMovedI    * silent! checktime
-"     endif
-" augroup END
-
 set title
 
 let &errorformat="%f:%l:%c:%m"
@@ -599,127 +847,6 @@ let &errorformat="%f:%l:%c:%m"
 set cino+=(0             "Align paramater lists after newline under '('
 
 set dictionary+=$HOME\words.txt
-
-" }}}
-
-" {{{ Mappings
-
-" Leader mappings
-" let mapleader = "\<Space>"
-nnoremap <Leader>sz :set scb!<CR> " syncronized scroll
-nnoremap <Leader>db :call DeleteInactiveBufs()<CR>
-nnoremap <Leader>dd :diffthis<CR>
-nnoremap <Leader>do :diffoff<CR>
-nnoremap <Leader>dp :diffput<CR>
-nnoremap <Leader>dg :diffget<CR>
-nnoremap <Leader>du :diffupdate<CR>
-nnoremap <Leader>m  :CtrlPMRUFiles<CR>
-nnoremap <Leader>st :call StripTrailingWhitespaces()<cr>
-nnoremap <Leader>sw :set wrap!<CR>
-nnoremap <Leader>tc :tabclose<CR>
-nnoremap <Leader>tn :tabnew<CR>
-nnoremap <silent><Leader>/ :nohlsearch<CR>
-nnoremap <silent><Leader>c :call ToggleColorColumn()<CR>
-
-nnoremap <silent><leader>S z=
-nnoremap <silent><leader>s :set spell!<CR>
-
-nnoremap <leader>ov :exe ':silent !code %'<CR>:redraw!<CR>
-nnoremap <Leader>e  :Ack  <C-R>=FindRootDirectory()<CR>\<C-Left><C-Left><C-Left><C-Left><C-Right><Right>
-nnoremap <Leader>r  :Ack <C-R><C-W> <C-R>=FindRootDirectory()<CR><C-Left><C-Left><C-Left><C-Left><C-Right><Right><CR>
-
-vmap <Leader>ld :Linediff<CR>
-nnoremap <C-s> :w<CR>
-
-imap jj <Esc>
-
-cnoremap <c-v> <c-r>+
-map! <S-Insert> <C-R>+
-
-" replace the selection with the buffer
-vmap r "_dp
-
-" c: Change into the blackhole register to not clobber the last yank
-nnoremap c "_c
-
-nnoremap gp `[v`]
-
-" Replace a word with yanked text
-nnoremap <leader>rp viw"0p
-
-" Navigate 5x faster when holding down Ctrl
-nmap <c-j> 5j
-nmap <c-k> 5k
-nmap <c-h> 5h
-nmap <c-l> 5l
-vmap <c-j> 5j
-vmap <c-k> 5k
-vmap <c-h> 5h
-vmap <c-l> 5l
-
-" Move normally between wrapped lines
-nmap j gj
-nmap k gk
-
-" window navigation
-nmap <silent> <A-k> :wincmd k<CR>
-nmap <silent> <A-j> :wincmd j<CR>
-nmap <silent> <A-h> :wincmd h<CR>
-nmap <silent> <A-l> :wincmd l<CR>
-tnoremap <silent> <A-k> :wincmd k<CR>
-tnoremap <silent> <A-j> :wincmd j<CR>
-tnoremap <silent> <A-h> :wincmd h<CR>
-tnoremap <silent> <A-l> :wincmd l<CR>
-
-" To map <Esc> to exit terminal-mode
-tnoremap <Esc> <C-\><C-n>
-
-" resize windows
-nmap <silent> <S-k> :resize +5<CR>
-nmap <silent> <S-j> :resize -5<CR>
-nmap <silent> <S-l> :vertical resize +5<CR>
-nmap <silent> <S-h> :vertical resize -5<CR>
-
-" go to previous visited locations
-nmap <silent> <C-t>  <C-o>
-nmap <silent> <A-Left>  <C-o>
-nmap <silent> <A-Right> <C-i>
-
-" buffer navigation
-nnoremap ]b :bnext<CR>
-nnoremap [b :bprevious<CR>
-
-nnoremap ]t :tabnext<CR>
-nnoremap [t :tabprevious<CR>
-
-nnoremap ]l :lnext<CR>
-nnoremap [l :lprev<CR>
-map <C-Down> ]c
-map <C-Up> [c
-"
-
-" faster indentaion
-nmap > >>
-nmap < <<
-
-" F* mappings
-nnoremap <F2> :cprevious<CR>
-nnoremap <F3> :cnext<CR>
-nnoremap <F10> :call ToggleNumber()<cr>
-
-" play macros with Q
-nnoremap Q @a
-vnoremap Q :norm @a<cr>
-nnoremap qq ZZ<CR>
-
-" search but don't jump to the next word
-nnoremap * *``
-
-" Fix for legacy vi inconsistency
-map Y y$
-
-" Remap VIM 0 to first non-blank character
-map 0 ^
 
 " }}}
 
@@ -768,48 +895,6 @@ function! AS_HandleSwapfile (filename, swapname)
           let v:swapchoice = 'e'
   endif
 endfunction
-
-" autocmd! bufwritepost init.vim source %
-
-" }}}
-
-" {{{ Plugins
-
-" Plug 'inkarkat/vim-mark'
-" let g:mw_no_mappings = 1
-
-" Plug 'ctrlpvim/ctrlp.vim'
-" TODO: candidate for replacement. Seems frecency is a good one
-let g:ctrlp_max_history = 4000
-let g:ctrlp_user_command = 'rg %s --files --color=never --glob ""'
-let g:ctrlp_use_caching = 0
-
-" Plug 'yssl/QFEnter' " quickfix options and mappings
-let g:qfenter_keymap = {}
-let g:qfenter_keymap.open = ['<CR>']
-let g:qfenter_keymap.vopen = ['v']
-let g:qfenter_keymap.hopen = ['s']
-let g:qfenter_keymap.topen = ['t']
-
-" Plug 'cocopon/vaffle.vim' " file manager
-function! s:customize_vaffle_mappings() abort
-  " Customize key mappings here
-  nmap <buffer> <Bslash> <Plug>(vaffle-open-root)
-  nmap <buffer> u        <Plug>(vaffle-open-parent)
-  nmap <buffer> K        <Plug>(vaffle-mkdir)
-  nmap <buffer> N        <Plug>(vaffle-new-file)
-endfunction
-
-augroup vimrc_vaffle
-  autocmd!
-  autocmd FileType vaffle call s:customize_vaffle_mappings()
-augroup END
-
-" Plug 'wincent/ferret'
-" TODO: do this in lua
-let g:FerretExecutableArguments = {
-      \   'rg': '-H -S --sort path --column --line-number --no-heading --ignore-file '.$USERPROFILE.'/ignore'
-      \ }
 
 " }}}
 
@@ -864,15 +949,6 @@ function! DeleteInactiveBufs()
     echomsg nWipeouts . ' buffer(s) wiped out'
 endfunction
 
-" Scratchpad
-command! -nargs=0 Scratch enew | call Scratch()
-command! -nargs=0 SScratch split | Scratch
-command! -nargs=0 VScratch vsplit | Scratch
-" define function to turn current buffer into a scratch buffer
-function! Scratch()
-  setlocal buftype=nofile bufhidden=hide noswapfile
-endfunction
-
 function! ToggleVerbose()
     if !&verbose
         set verbosefile=$HOME\vim_undo\vb.txt
@@ -882,17 +958,6 @@ function! ToggleVerbose()
         set verbosefile=
     endif
 endfunction
-
-let s:fontsize = 12
-function! AdjustFontSize(amount)
-  let s:fontsize = s:fontsize+a:amount
-  :execute "GuiFont! Consolas:h" . s:fontsize
-endfunction
-
-noremap <C-ScrollWheelUp> :call AdjustFontSize(1)<CR>
-noremap <C-ScrollWheelDown> :call AdjustFontSize(-1)<CR>
-inoremap <C-ScrollWheelUp> <Esc>:call AdjustFontSize(1)<CR>a
-inoremap <C-ScrollWheelDown> <Esc>:call AdjustFontSize(-1)<CR>a
 
 function! Redir(cmd, rng, start, end)
   for win in range(1, winnr('$'))
@@ -941,5 +1006,10 @@ if (has("win32") && (g:configForWork == 1))
   " Work specific things
   source $USERPROFILE/AppData/Local/nvim/eb.vim
 endif
+
+" TODO list
+"
+" [ ] remap quickfix window map for split(now on C-X)
+" [ ] which-key takes a lot of time in C-R
 
 " ex: set foldmethod=marker
