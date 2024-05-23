@@ -1,4 +1,6 @@
 lua << EOF
+
+-- {{{ Mandatory editor settings
 if vim.fn.has("win32") == 1 then
   vim.g.configForWork        = 1
   vim.g.python3_host_prog    = 'C:/ProgramData/chocolatey/bin/python3.12.EXE'
@@ -12,6 +14,8 @@ vim.g.mapleader      = ' '
 vim.g.maplocalleader = ' '
 
 local root_patterns = {'.git', '.svn', 'util', 'plugin.xml'}
+
+--}}}
 
 -- {{{ Plugins func
 
@@ -32,7 +36,6 @@ require("lazy").setup(
 {
   {
     "inkarkat/vim-mark",
-    lazy = false,
     event = "VeryLazy",
     dependencies = {
       "inkarkat/vim-ingo-library"
@@ -47,18 +50,17 @@ require("lazy").setup(
     "wincent/ferret",
     enabled = false,
     init = function()
-        vim.g.FerretAutojump = 0
-        vim.g.FerretHlsearch = 1
-        vim.g.FerretMap = 0
-        vim.g.FerretQFCommands = 0
-        vim.g.FerretExecutableArguments = {
-          rg = '-H -S --sort path --column --line-number --no-heading --ignore-file ~/ignore'
-        }
+      vim.g.FerretAutojump = 0
+      vim.g.FerretHlsearch = 1
+      vim.g.FerretMap = 0
+      vim.g.FerretQFCommands = 0
+      vim.g.FerretExecutableArguments = { rg = '-H -S --sort path --column --line-number --no-heading --ignore-file ~/ignore' }
     end
   },
 
   {
     'kevinhwang91/nvim-bqf',
+    event = "VeryLazy",
     ft = 'qf',
     init = function()
       vim.cmd([[
@@ -79,6 +81,7 @@ require("lazy").setup(
 
   {
     "mangelozzi/nvim-rgflow.lua",
+    event = "VeryLazy",
     init = function()
     require("rgflow").setup(
     {
@@ -94,16 +97,6 @@ require("lazy").setup(
   { "Olical/vim-enmasse", cmd = "EnMasse" },
 
   { "yssl/QFEnter", enabled = false },
-
-  {
-    "airblade/vim-rooter",
-    enabled = false,
-    init = function()
-      vim.g.rooter_silent_chdir = 1
-      vim.g.rooter_patterns     = {'.git', '.svn', 'util', 'plugin.xml'}
-      vim.g.rooter_manual_only  = 1
-    end
-  },
 
   -- {{{ Tabline
   {
@@ -187,46 +180,25 @@ require("lazy").setup(
         },
       }
 
-      vim.keymap.set("n", "<C-a>", function()
-          require("dial.map").manipulate("increment", "normal")
-      end)
-      vim.keymap.set("n", "<C-x>", function()
-          require("dial.map").manipulate("decrement", "normal")
-      end)
-      vim.keymap.set("n", "g<C-a>", function()
-          require("dial.map").manipulate("increment", "gnormal")
-      end)
-      vim.keymap.set("n", "g<C-x>", function()
-          require("dial.map").manipulate("decrement", "gnormal")
-      end)
-      vim.keymap.set("v", "<C-a>", function()
-          require("dial.map").manipulate("increment", "visual")
-      end)
-      vim.keymap.set("v", "<C-x>", function()
-          require("dial.map").manipulate("decrement", "visual")
-      end)
-      vim.keymap.set("v", "g<C-a>", function()
-          require("dial.map").manipulate("increment", "gvisual")
-      end)
-      vim.keymap.set("v", "g<C-x>", function()
-          require("dial.map").manipulate("decrement", "gvisual")
-      end)
+      vim.keymap.set("n", "<C-a>", function() require("dial.map").manipulate("increment", "normal") end)
+      vim.keymap.set("n", "<C-x>", function() require("dial.map").manipulate("decrement", "normal") end)
+      vim.keymap.set("n", "g<C-a>", function() require("dial.map").manipulate("increment", "gnormal") end)
+      vim.keymap.set("n", "g<C-x>", function() require("dial.map").manipulate("decrement", "gnormal") end)
+      vim.keymap.set("v", "<C-a>", function() require("dial.map").manipulate("increment", "visual") end)
+      vim.keymap.set("v", "<C-x>", function() require("dial.map").manipulate("decrement", "visual") end)
+      vim.keymap.set("v", "g<C-a>", function() require("dial.map").manipulate("increment", "gvisual") end)
+      vim.keymap.set("v", "g<C-x>", function() require("dial.map").manipulate("decrement", "gvisual") end)
     end,
   },
   -- }}}
 
   {
-    "mhinz/vim-signify",
-    enabled=false,
-    ft = {'c', 'xml', 'm4', 'h', 'c.m4', 'h.m4'},
+    "chentoast/marks.nvim",
+    event = "VeryLazy",
     init = function()
-      vim.g.signify_disable_by_default = 0
-      vim.g.signify_vcs_list = { 'svn', 'git' }
-    end
+      require'marks'.setup({})
+    end,
   },
-
-
-  { "kshenoy/vim-signature", event = "VeryLazy" },
 
   -- {{{ todo-comments
   {
@@ -235,10 +207,9 @@ require("lazy").setup(
       require("todo-comments").setup {
         keywords = {
           FIX = {
-            icon = " ", -- icon used for the sign, and in search results
-            color = "error", -- can be a hex color, or a named color (see below)
-            alt = { "FIXME", "BUG", "FIXIT", "ISSUE" }, -- a set of other keywords that all map to this FIX keywords
-            -- signs = false, -- configure signs for some keywords individually
+            icon = " ",
+            color = "error",
+            alt = { "FIXME", "BUG", "FIXIT", "ISSUE" },
           },
           TODO = { icon = " ", color = "info" },
           HACK = { icon = " ", color = "warning" },
@@ -280,22 +251,15 @@ require("lazy").setup(
         "bash",
         "c",
         "diff",
-        "html",
-        "javascript",
         "jsdoc",
         "json",
-        "jsonc",
         "lua",
         "luadoc",
         "luap",
         "markdown",
         "markdown_inline",
         "python",
-        "query",
         "regex",
-        "toml",
-        "tsx",
-        "typescript",
         "vim",
         "vimdoc",
         "xml",
@@ -305,6 +269,7 @@ require("lazy").setup(
   },
   -- }}}
 
+  -- {{{ Vaffle
   {
     "cocopon/vaffle.vim",
     init = function()
@@ -317,6 +282,7 @@ require("lazy").setup(
       vim.api.nvim_create_autocmd('FileType', { group = 'vimrc_vaffle', pattern = 'vaffle', callback = customize_vaffle_mappings })
     end
   },
+  -- }}}
 
   { "nlknguyen/papercolor-theme", priority = 1000 },
 
@@ -330,7 +296,7 @@ require("lazy").setup(
 
       require('mini.align').setup({
         mappings = {
-          start = '<Enter>', -- TODO: think of replacing with ga
+          start = '<Enter>',
           start_with_preview = 'gA',
         }
       })
@@ -390,16 +356,16 @@ require("lazy").setup(
       -- {{{ mini.surround
       require('mini.surround').setup({
         mappings = {
-          add = 'S', -- Add surrounding in Normal and Visual modes
-          delete = 'ds', -- Delete surrounding
-          find = 'sf', -- Find surrounding (to the right)
-          find_left = 'sF', -- Find surrounding (to the left)
-          highlight = 'sh', -- Highlight surrounding
-          replace = 'sr', -- Replace surrounding
+          add            = 'S', -- Add surrounding in Normal and Visual modes
+          delete         = 'ds', -- Delete surrounding
+          find           = 'sf', -- Find surrounding (to the right)
+          find_left      = 'sF', -- Find surrounding (to the left)
+          highlight      = 'sh', -- Highlight surrounding
+          replace        = 'sr', -- Replace surrounding
           update_n_lines = 'sn', -- Update `n_lines`
 
-          suffix_last = 'l', -- Suffix to search with "prev" method
-          suffix_next = 'n', -- Suffix to search with "next" method
+          suffix_last    = 'l', -- Suffix to search with "prev" method
+          suffix_next    = 'n', -- Suffix to search with "next" method
         },
       })
       -- }}}
@@ -413,14 +379,6 @@ require("lazy").setup(
       require('mini.splitjoin').setup()
 
     end,
-
-    vim.keymap.set("n", "<leader>n", function()
-          MiniPick.builtin.files({}, {
-            source = {
-              cwd = vim.fs.root(0, root_patterns),
-            },
-          })
-        end, { desc = "Find files in project" })
 
   },
   -- }}
@@ -519,9 +477,19 @@ require("lazy").setup(
   },
 
   {
+    -- zoom plugin
     "tenxsoydev/size-matters.nvim",
     init = function()
       require("size-matters").setup()
+    end,
+  },
+
+  {
+    -- TODO: check this one, seems interesting
+    "LeonHeidelbach/trailblazer.nvim",
+    enabled=false,
+    init = function()
+        require("trailblazer").setup({})
     end,
   },
 
@@ -531,16 +499,13 @@ require("lazy").setup(
 
 -- {{{ Mappings
 
-vim.keymap.set("n", "<leader>r", function()
-   require('rgflow').open(vim.fn.expand("<cword>"), nil, vim.fs.root(0, root_patterns), nil)
-end, {noremap = true})
-
-vim.keymap.set("n", "<leader>e", function()
-   require('rgflow').open(nil, nil, vim.fs.root(0, root_patterns), nil)
-end, {noremap = true})
-
-local map = vim.api.nvim_set_keymap
+local map  = vim.api.nvim_set_keymap
+local mapf = vim.keymap.set
 local opts = { noremap = true, silent = true }
+
+mapf("n", "<leader>r", function() require('rgflow').open(vim.fn.expand("<cword>"), nil, vim.fs.root(0, root_patterns), nil) end, {noremap = true})
+mapf("n", "<leader>e", function() require('rgflow').open(nil, nil, vim.fs.root(0, root_patterns), nil) end, {noremap = true})
+mapf("n", "<leader>n", function() MiniPick.builtin.files({}, { source = { cwd = vim.fs.root(0, root_patterns), }, }) end, { desc = "Find files in project" })
 
 -- Synchronized scroll
 map('n', '<Leader>sz', ':set scb!<CR>', opts)
@@ -589,6 +554,9 @@ map('n', 'gp', '`[v`]', opts)
 
 -- Find file under cursor in the same window
 map('n', 'gf', 'gF', opts)
+
+-- highlight selected word
+vim.api.nvim_set_keymap('v', '//', 'y/\\V<C-R>"<CR>', { noremap = true, silent = true })
 
 -- Replace a word with yanked text
 map('n', '<leader>rp', 'viw"0p', opts)
@@ -644,8 +612,8 @@ map('n', '<C-Down>', ']c', opts)
 map('n', '<C-Up>', '[c', opts)
 
 -- Faster indentation
-map('n', '>', '>>', opts)
-map('n', '<', '<<', opts)
+-- map('n', '>', '>>', opts)
+-- map('n', '<', '<<', opts)
 
 -- F* mappings
 map('n', '<F2>', ':cprevious<CR>', opts)
@@ -680,7 +648,7 @@ vim.api.nvim_create_user_command('SScratch', function() vim.cmd('split') vim.cmd
 vim.api.nvim_create_user_command('VScratch', function() vim.cmd('vsplit') vim.cmd('enew') scratch() end, { nargs = 0 })
 -- }}}
 
--- TODO: replace vim-rooter
+-- {{{ Auto-root
 local augroup = vim.api.nvim_create_augroup('AutoCD', {})
 
 vim.api.nvim_create_autocmd({ 'VimEnter', 'BufEnter', 'BufReadPost' }, {
@@ -694,7 +662,9 @@ vim.api.nvim_create_autocmd({ 'VimEnter', 'BufEnter', 'BufReadPost' }, {
         end
     end,
 })
+-- }}}
 
+-- {{{ Editor settings
 -- disable netrw at the very start of your init.lua
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
@@ -706,310 +676,259 @@ if vim.g.neovide then
   vim.g.neovide_fullscreen = false
   vim.g.neovide_cursor_animation_length = 0
 end
+
+-- Boost performance of rendering long lines
+vim.opt.synmaxcol = 300
+
+-- How many lines to scroll at a time, make scrolling appear faster
+-- vim.opt.scrolljump = 5
+
+if vim.fn.has("termguicolors") == 1 then
+  vim.opt.termguicolors              = true
+  vim.env.NVIM_TUI_ENABLE_TRUE_COLOR = 1
+end
+
+vim.cmd.colorscheme('one')
+
+vim.cmd.syntax     = 'on'
+vim.opt.mouse      = 'a'
+vim.opt.encoding   = 'utf-8'
+vim.scriptencoding = 'utf-8'
+
+vim.opt.clipboard:append('unnamedplus')
+vim.opt.foldmethod = 'manual'
+vim.opt.autochdir  = true
+
+-- This makes vim act like all other editors, buffers can exist in the background without being in a window.
+vim.opt.hidden = true
+
+vim.opt.undofile   = true
+vim.opt.undodir    = vim.env.HOME .. '/vim_undo'
+vim.opt.undolevels = 10000
+vim.opt.undoreload = 10000
+
+-- Set the location for swap files and backup files
+-- vim.opt.directory = vim.env.HOME .. '/vim_undo'
+-- vim.opt.backupdir = vim.env.HOME .. '/vim_undo'
+
+-- Search settings
+vim.opt.hlsearch   = true
+vim.opt.incsearch  = true
+vim.opt.number     = true
+vim.opt.ignorecase = true
+
+-- Flashes matching brackets or parentheses
+vim.opt.showmatch = true
+
+-- Display extra whitespace
+vim.opt.list      = true
+vim.opt.listchars = 'trail:-,tab:>-,extends:>,precedes:<,conceal:+'
+
+-- Indentation settings
+vim.opt.autoindent  = true
+vim.opt.smartindent = true
+vim.opt.smarttab    = true
+vim.opt.shiftwidth  = 2
+vim.opt.softtabstop = 2
+vim.opt.tabstop     = 2
+vim.opt.expandtab   = true
+vim.opt.wrap        = false
+
+-- Scroll settings
+vim.opt.scrolloff = 5
+
+-- Split settings
+vim.opt.splitright = true
+vim.opt.splitbelow = true
+
+-- Language menu
+vim.opt.langmenu = 'none'
+
+-- Autoindent (alternative setting)
+vim.opt.ai = true
+
+-- Command line completion settings
+vim.opt.wildmenu = true
+vim.opt.wildmode = 'full'
+
+vim.opt.visualbell = true
+
+vim.opt.history = 1000
+
+-- Disable built-in plugins
+vim.g.loaded_2html_plugin      = 1
+vim.g.loaded_gzip              = 1
+vim.g.loaded_rrhelper          = 1
+vim.g.loaded_tarPlugin         = 1
+vim.g.loaded_zipPlugin         = 1
+vim.g.loaded_tutor_mode_plugin = 1
+vim.g.loaded_tarPlugin         = 1
+vim.g.loaded_vimballPlugin     = 1
+vim.g.loaded_matchit           = 1
+
+-- Show the current line
+vim.opt.cul = true
+
+-- Show the filename in the bottom of the window
+vim.opt.modeline   = true
+vim.opt.laststatus = 2
+
+-- Allow backspacing over everything in insert-mode
+vim.opt.backspace = { 'indent', 'eol', 'start' }
+vim.opt.shortmess = 'aoOTt'
+
+-- If we have 'live substitution', enable it
+if vim.fn.exists('&inccommand') == 1 then
+  vim.opt.inccommand = 'nosplit'
+end
+
+vim.opt.title = true
+
+-- Set error format
+vim.opt.errorformat = "%f:%l:%c:%m"
+
+-- Set dictionary
+vim.opt.dictionary:append(vim.env.HOME .. '\\words.txt')
+
+-- C indentation settings
+vim.opt.cino = vim.opt.cino + '(0'
+
+--}}}
+
+-- {{{ Autocmds
+
+-- Set nowrap for quickfix file type
+vim.api.nvim_create_autocmd('FileType', {pattern = 'qf', command = 'set nowrap'})
+
+-- Set row highlight on window enter and leave
+vim.api.nvim_create_augroup('BgHighlight', {clear = true })
+vim.api.nvim_create_autocmd('WinEnter', {group = 'BgHighlight', command = 'set cul'})
+vim.api.nvim_create_autocmd('WinLeave', {group = 'BgHighlight', command = 'set nocul'})
+
+vim.api.nvim_create_autocmd('FileType', {pattern = 'make', command = 'setlocal noexpandtab shiftwidth=8 tabstop=8'})
+
+local autoswap_group = vim.api.nvim_create_augroup('AutoSwap', { clear = true })
+
+-- Define the function to handle swap files
+local function AS_HandleSwapfile(filename, swapname)
+    -- If the swapfile is older than the file itself, delete the swapfile
+    if vim.fn.getftime(swapname) < vim.fn.getftime(filename) then
+        vim.fn.delete(swapname)
+        vim.v.swapchoice = 'e'
+    end
+end
+
+-- Create the autocommand to call the function when a swap exists
+vim.api.nvim_create_autocmd('SwapExists', {
+    group = autoswap_group,
+    callback = function(args)
+        AS_HandleSwapfile(vim.fn.expand('<afile>:p'), args.file)
+    end
+})
+--}}}
+
+--{{{ Functions
+
+function ToggleColorColumn()
+    if vim.wo.colorcolumn ~= '' then
+        vim.wo.colorcolumn = ''
+    else
+        vim.wo.colorcolumn = '100'
+    end
+end
+
+function ToggleNumber()
+    if vim.wo.relativenumber then
+        vim.wo.relativenumber = false
+        vim.wo.number = true
+    else
+        vim.wo.relativenumber = true
+    end
+end
+
+function StripTrailingWhitespaces()
+    local saved_view = vim.fn.winsaveview()
+    vim.api.nvim_command('%s/\\s\\+$//e')
+    vim.fn.winrestview(saved_view)
+end
+
+function DeleteInactiveBufs()
+    local current_buffer = vim.api.nvim_get_current_buf()
+    local buffers = vim.api.nvim_list_bufs()
+
+    for _, buf in ipairs(buffers) do
+        if vim.api.nvim_buf_is_loaded(buf) and buf ~= current_buffer then
+            vim.api.nvim_command('bdelete ' .. buf)
+        end
+    end
+end
+
+function ToggleVerbose()
+    if vim.o.verbose == 0 then
+        vim.o.verbosefile = vim.fn.expand('$HOME/vim_undo/vb.txt')
+        vim.o.verbose = 12
+    else
+        vim.o.verbose = 0
+        vim.o.verbosefile = ''
+    end
+end
+vim.api.nvim_create_user_command('ToggleVerbose', function() ToggleVerbose() end, {})
+
+function Redir(cmd, rng, start, _end)
+    for win = 1, vim.fn.winnr('$') do
+        if vim.fn.getwinvar(win, 'scratch') ~= '' then
+            vim.cmd(win .. 'windo close')
+        end
+    end
+
+    local output
+    if cmd:sub(1, 1) == '!' then
+        local shell_cmd = cmd:find(' %%') and cmd:gsub(' %%', ' ' .. vim.fn.expand('%:p')) or cmd:sub(2)
+        if rng == 0 then
+            output = vim.fn.systemlist(shell_cmd)
+        else
+            local joined_lines = table.concat(vim.fn.getline(start, _end), '\n')
+            local cleaned_lines = joined_lines:gsub("'", "\\'")
+            output = vim.fn.systemlist(shell_cmd .. " <<< $" .. cleaned_lines)
+        end
+    else
+        output = vim.fn.split(vim.fn.execute(cmd), "\n")
+    end
+
+    vim.cmd('vnew')
+    vim.api.nvim_buf_set_var(0, 'scratch', true)
+    vim.bo.buftype = 'nofile'
+    vim.bo.bufhidden = 'wipe'
+    vim.bo.buflisted = false
+    vim.bo.swapfile = false
+    vim.fn.setline(1, output)
+end
+
+vim.api.nvim_create_user_command('Redir', function(opts)
+    local range = opts.line1 ~= opts.line2
+    Redir(opts.args, range and 1 or 0, opts.line1, opts.line2)
+end, { nargs = 1, complete = 'command', range = true, bar = true })
+
+function CopyMatches(reg)
+    local hits = {}
+    vim.cmd([[ %s//\=len(add(hits, submatch(0))) ? submatch(0) : ''/gne ]])
+    local register = reg == '' and '+' or reg
+    vim.fn.setreg(register, table.concat(hits, "\n") .. "\n")
+end
+vim.api.nvim_create_user_command('CopyMatches', function(opts) CopyMatches(opts.reg) end, { register = true })
+
+--}}}
+
+if vim.fn.has("win32") == 1 and vim.g.configForWork == 1 then
+  local userProfile = vim.fn.substitute(vim.env.USERPROFILE, '\\', '/', 'g')
+
+  -- Work specific things
+  vim.cmd('source ' .. userProfile .. '/AppData/Local/nvim/eb.vim')
+end
 EOF
-
-" {{{ Editior settings
-
-" Boost performance of rendering long lines
-set synmaxcol=300
-
-" How many lines to scroll at a time, make scrolling appears faster
-" set scrolljump=5
-
-set mouse=a
-
-if (has("termguicolors"))
- set termguicolors
- let $NVIM_TUI_ENABLE_TRUE_COLOR=1
- let &t_8b="\e[48;2;%ld;%ld;%ldm"
-endif
-
-syntax on
-
-colorscheme one
-
-set encoding=utf-8
-scriptencoding utf-8
-
-" map copy/paste
-set clipboard+=unnamedplus
-
-" folding
-set foldmethod=manual
-
-" set the curent directory
-set autochdir
-
-" This makes vim act like all other editors, buffers can
-" exist in the background without being in a window.
-" http://items.sjbach.com/319/configuring-vim-right
-set hidden
-
-" don't open folds when search match is found inside
-set fdo-=search
-
-" persistent undo
-set undofile
-set undodir=$HOME\vim_undo
-set undolevels=10000
-set undoreload=10000
-
-" set the locaiton for swp files
-" set directory=~/vim_undo
-" set backupdir=~/vim_undo
-
-" search
-set hlsearch
-set incsearch
-set number
-set ignorecase
-vmap // y/\V<C-R>"<CR>
-
-" set spelling
-set sps=best,10
-
-" flashes matching brackets or parentheses
-set showmatch
-
-" Display extra whitespace
-set list
-set listchars=trail:-,tab:>-,extends:>,precedes:<,conceal:+
-
-set autoindent
-set smartindent
-set smarttab
-set shiftwidth=2
-set softtabstop=2
-set tabstop=2
-set expandtab
-set nowrap
-
-set scrolloff=5
-
-set splitright " Puts new vsplit windows to the right of the current
-set splitbelow " Puts new split windows to the bottom of the current
-
-" set the language
-set langmenu=none
-
-" autoindent
-set ai
-
-set wildmenu
-set wildmode=full
-
-" set visual bell -- i hate that damned beeping
-set vb
-
-" set history length
-set history=1000
-
-" disable the menu
-set guioptions-=T
-set guioptions-=L
-set guioptions-=r
-set guioptions-=m
-set guioptions-=e
-"
-" Disable built-in plugins
-let g:loaded_2html_plugin      = 1
-let g:loaded_gzip              = 1
-let g:loaded_rrhelper          = 1
-let g:loaded_tarPlugin         = 1
-let g:loaded_zipPlugin         = 1
-let g:loaded_tutor_mode_plugin = 1
-let g:loaded_tarPlugin         = 1
-let g:loaded_vimballPlugin     = 1
-let g:loaded_matchit           = 1
-
-" show the current line
-set cul
-
-" show the filename in the bottom of the window
-set modeline
-set ls=2
-
-" allow backspacing over everything in insert-mode
-set backspace=indent,eol,start
-
-set shortmess=aoOTt
-
-" If we have 'live substitution', enable it
-if exists('&inccommand')
-  set inccommand=nosplit
-endif
-
-set title
-
-let &errorformat="%f:%l:%c:%m"
-
-" C stuff
-set cino+=(0             "Align paramater lists after newline under '('
-
-set dictionary+=$HOME\words.txt
-
-" }}}
-
-" {{{ Autocmds
-au FileType qf set nowrap
-
-" Set row highlight
-augroup BgHighlight
-    autocmd!
-    autocmd WinEnter * set cul
-    autocmd WinLeave * set nocul
-augroup END
-
-" Makefiles
-
-au FileType make setl noexpandtab " use real tabs
-au FileType make setl shiftwidth=8 " standard shift width
-au FileType make setl tabstop=8 " use standard tab size
-
-" Set window position variable which is used in the diff mapping
-augroup WinPos
-    autocmd!
-    autocmd WinEnter * call MapDiffCmd(winnr())
-augroup END
-
-augroup AutoSwap
-        autocmd!
-        autocmd SwapExists *  call AS_HandleSwapfile(expand('<afile>:p'), v:swapname)
-augroup END
-
-function! MapDiffCmd(number)
-    if (a:number == 1)
-      map <C-Right> :diffput<CR>
-      map <C-Left> :diffget<CR>
-    elseif (a:number == 2)
-      map <C-Right> :diffget<CR>
-      map <C-Left> :diffput<CR>
-    else
-    endif
-endfunction
-
-function! AS_HandleSwapfile (filename, swapname)
-  " if swapfile is older than file itself, just get rid of it
-  if getftime(v:swapname) < getftime(a:filename)
-          call delete(v:swapname)
-          let v:swapchoice = 'e'
-  endif
-endfunction
-
-" }}}
-
-" {{{ Functions and commands
-
-" Toggle ColorColumn
-function! ToggleColorColumn()
-    if &colorcolumn != ''
-        setlocal colorcolumn&
-    else
-        setlocal colorcolumn=100
-    endif
-endfunction
-
-" toggle between number and relativenumber
-function! ToggleNumber()
-  if(&relativenumber == 1)
-    set norelativenumber
-    set number
-  else
-    set relativenumber
-  endif
-endfunc
-
-function! StripTrailingWhitespaces()
-  " save last search & cursor position
-  let _s=@/
-  let l = line(".")
-  let c = col(".")
-  %s/\s\+$//e
-  let @/=_s
-  call cursor(l, c)
-endfunction
-
-function! DeleteInactiveBufs()
-    "From tabpagebuflist() help, get a list of all buffers in all tabs
-    let tablist = []
-    for i in range(tabpagenr('$'))
-        call extend(tablist, tabpagebuflist(i + 1))
-    endfor
-
-    "Below originally inspired by Hara Krishna Dara and Keith Roberts
-    "http://tech.groups.yahoo.com/group/vim/message/56425
-    let nWipeouts = 0
-    for i in range(1, bufnr('$'))
-        if bufexists(i) && !getbufvar(i,"&mod") && index(tablist, i) == -1
-        "bufno exists AND isn't modified AND isn't in the list of buffers open in windows and tabs
-            silent exec 'bwipeout' i
-            let nWipeouts = nWipeouts + 1
-        endif
-    endfor
-    echomsg nWipeouts . ' buffer(s) wiped out'
-endfunction
-
-function! ToggleVerbose()
-    if !&verbose
-        set verbosefile=$HOME\vim_undo\vb.txt
-        set verbose=12
-    else
-        set verbose=0
-        set verbosefile=
-    endif
-endfunction
-
-function! Redir(cmd, rng, start, end)
-  for win in range(1, winnr('$'))
-    if getwinvar(win, 'scratch')
-      execute win . 'windo close'
-    endif
-  endfor
-  if a:cmd =~ '^!'
-    let cmd = a:cmd =~' %'
-      \ ? matchstr(substitute(a:cmd, ' %', ' ' . expand('%:p'), ''), '^!\zs.*')
-      \ : matchstr(a:cmd, '^!\zs.*')
-    if a:rng == 0
-      let output = systemlist(cmd)
-    else
-      let joined_lines = join(getline(a:start, a:end), '\n')
-      let cleaned_lines = substitute(shellescape(joined_lines), "'\\\\''", "\\\\'", 'g')
-      let output = systemlist(cmd . " <<< $" . cleaned_lines)
-    endif
-  else
-    redir => output
-    execute a:cmd
-    redir END
-    let output = split(output, "\n")
-  endif
-  vnew
-  let w:scratch = 1
-  setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile
-  call setline(1, output)
-endfunction
-
-command! -nargs=1 -complete=command -bar -range Redir silent call Redir(<q-args>, <range>, <line1>, <line2>)
-
-function! CopyMatches(reg)
-  let hits = []
-  %s//\=len(add(hits, submatch(0))) ? submatch(0) : ''/gne
-  let reg = empty(a:reg) ? '+' : a:reg
-  execute 'let @'.reg.' = join(hits, "\n") . "\n"'
-endfunction
-command! -register CopyMatches call CopyMatches(<q-reg>)
-
-" }}}
-
-if (has("win32") && (g:configForWork == 1))
-  let userProfile = substitute($USERPROFILE,'\\','/','g')
-
-  " Work specific things
-  source $USERPROFILE/AppData/Local/nvim/eb.vim
-endif
 
 " TODO list
 "
 " [ ] remap quickfix window map for split(now on C-X)
 " [ ] which-key takes a lot of time in C-R
-
 " ex: set foldmethod=marker
