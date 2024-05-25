@@ -302,6 +302,8 @@ require("lazy").setup(
   {
     "echasnovski/mini.nvim",
     init = function()
+      require('mini.basics').setup()
+
       require('mini.ai').setup()
 
       require('mini.align').setup({
@@ -830,10 +832,6 @@ map('v', '<C-k>', '5k', { noremap = true })
 map('v', '<C-h>', '5h', { noremap = true })
 map('v', '<C-l>', '5l', { noremap = true })
 
--- Move normally between wrapped lines
-map('n', 'j', 'gj', { noremap = true })
-map('n', 'k', 'gk', { noremap = true })
-
 -- Window navigation
 map('n', '<A-k>', ':wincmd k<CR>', opts)
 map('n', '<A-j>', ':wincmd j<CR>', opts)
@@ -929,9 +927,6 @@ vim.api.nvim_create_autocmd({ 'VimEnter', 'BufEnter', 'BufReadPost' }, {
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 
--- optionally enable 24-bit colour
-vim.opt.termguicolors = true
-
 if vim.g.neovide then
   vim.g.neovide_fullscreen = false
   vim.g.neovide_cursor_animation_length = 0
@@ -969,38 +964,26 @@ vim.opt.undolevels = 10000
 vim.opt.undoreload = 10000
 
 -- Set the location for swap files and backup files
--- vim.opt.directory = vim.env.HOME .. '/vim_undo'
--- vim.opt.backupdir = vim.env.HOME .. '/vim_undo'
+vim.opt.directory = vim.env.HOME .. '/vim_undo'
+vim.opt.backupdir = vim.env.HOME .. '/vim_undo'
 
 -- Search settings
 vim.opt.hlsearch   = true
 vim.opt.incsearch  = true
-vim.opt.number     = true
-vim.opt.ignorecase = true
 
 -- Flashes matching brackets or parentheses
 vim.opt.showmatch = true
 
--- Display extra whitespace
-vim.opt.list      = true
-vim.opt.listchars = 'trail:-,tab:>-,extends:>,precedes:<,conceal:+'
-
 -- Indentation settings
 vim.opt.autoindent  = true
-vim.opt.smartindent = true
 vim.opt.smarttab    = true
 vim.opt.shiftwidth  = 2
 vim.opt.softtabstop = 2
 vim.opt.tabstop     = 2
 vim.opt.expandtab   = true
-vim.opt.wrap        = false
 
 -- Scroll settings
 vim.opt.scrolloff = 5
-
--- Split settings
-vim.opt.splitright = true
-vim.opt.splitbelow = true
 
 -- Language menu
 vim.opt.langmenu = 'none'
