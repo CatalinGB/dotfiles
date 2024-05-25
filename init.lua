@@ -40,7 +40,7 @@ require("lazy").setup(
       "inkarkat/vim-ingo-library"
     },
     init = function()
-        vim.g.mw_no_mappings = 1
+        vim.g.mw_no_mappings               = 1
         vim.g.mwDefaultHighlightingPalette = 'extended'
     end,
   },
@@ -59,7 +59,9 @@ require("lazy").setup(
     end
   },
 
+  -- {{{ nvim-bqf
   {
+    -- TODO: do I really need this?, the preview is annoying
     'kevinhwang91/nvim-bqf',
     event = "VeryLazy",
     ft = 'qf',
@@ -83,27 +85,16 @@ require("lazy").setup(
       vim.g.bqf_enable_preview = 0
     end
   },
-
-  {
-    "mangelozzi/nvim-rgflow.lua",
-    event = "VeryLazy",
-    init = function()
-    require("rgflow").setup(
-    {
-        default_trigger_mappings  = false,
-        default_ui_mappings       = true,
-        default_quickfix_mappings = true,
-
-        cmd_flags = ("--smart-case -H -S --sort path --column --line-number --no-heading --ignore-file "..os.getenv("USERPROFILE").."/ignore")
-    })
-    end
-  },
+  -- }}}
 
   { "Olical/vim-enmasse", cmd = "EnMasse" },
 
-  { "yssl/QFEnter", enabled = false },
-
-  { "duane9/nvim-rg", },
+  {
+    "duane9/nvim-rg",
+    init = function()
+      vim.g.rg_command = '--smart-case -H -S --sort path --column --line-number --no-heading --ignore-file '
+    end
+  },
   --}}}
 
   -- {{{ Tabline
@@ -118,10 +109,8 @@ require("lazy").setup(
       vim.opt.sessionoptions = 'curdir,folds,globals,help,tabpages,terminal,winsize'
       local theme = {
         fill = 'TabLineFill',
-        -- Also you can do this: fill = { fg='#f2e9de', bg='#907aa9', style='italic' }
         head = 'TabLine',
-        -- current_tab = 'TabLineSel',
-        current_tab = { fg = '#F8FBF6', bg = '#896a98', style = 'italic' },
+        current_tab = { fg = '#F8FBF6', bg = '#887a95', style = 'italic' },
         tab = 'TabLine',
         win = 'TabLine',
         tail = 'TabLine',
@@ -146,7 +135,6 @@ require("lazy").setup(
             }
           end),
           line.spacer(),
-          --shows list of windows in tab
           line.wins_in_tab(line.api.get_current_tab()).foreach(function(win)
             return {
               line.sep(' ', theme.win, theme.fill),
@@ -174,13 +162,12 @@ require("lazy").setup(
     config = function()
       local augend = require("dial.augend")
       require("dial.config").augends:register_group{
-        -- default augends used when no group name is specified
         default = {
           augend.constant.alias.bool,
           augend.semver.alias.semver,
-          augend.integer.alias.decimal,   -- nonnegative decimal number (0, 1, 2, 3, ...)
-          augend.integer.alias.hex,       -- nonnegative hex number  (0x01, 0x1a1f, etc.)
-          augend.date.alias["%Y/%m/%d"],  -- date (2022/02/19, etc.)
+          augend.integer.alias.decimal,
+          augend.integer.alias.hex,
+          augend.date.alias["%Y/%m/%d"],
           augend.constant.new{ elements = {"true", "false"} },
           augend.constant.new{ elements = {"TRUE", "FALSE"} },
           augend.constant.new{ elements = {"E_OK", "E_NOT_OK"} },
@@ -210,37 +197,16 @@ require("lazy").setup(
   },
   --}}}
 
-  -- {{{ Todo-comments
-  {
-    "folke/todo-comments.nvim",
-    config = function()
-      require("todo-comments").setup {
-        keywords = {
-          FIX = {
-            icon = " ",
-            color = "error",
-            alt = { "FIXME", "BUG", "FIXIT", "ISSUE" },
-          },
-          TODO = { icon = " ", color = "info" },
-          HACK = { icon = " ", color = "warning" },
-          WARN = { icon = " ", color = "warning", alt = { "WARNING", "XXX" } },
-          PERF = { icon = " ", alt = { "OPTIM", "PERFORMANCE", "OPTIMIZE" } },
-          NOTE = { icon = " ", color = "hint", alt = { "INFO" } },
-          ERROR = { icon = " ", color = "error", alt = { "ERROR" } },
-          TEST = { icon = "⏲ ", color = "test", alt = { "TESTING", "PASSED", "FAILED" } },
-        },
-      }
-    end,
-  },
-  -- }}}
-
   { "AndrewRadev/linediff.vim", cmd = "Linediff" },
 
   { "mbbill/undotree" },
 
+  { "bfrg/vim-cpp-modern" },
+
   -- {{{ Treesitter
   {
     "nvim-treesitter/nvim-treesitter",
+    enabled=false,
     version = false,
     build = ":TSUpdate",
     event = { "VeryLazy" },
@@ -319,7 +285,9 @@ require("lazy").setup(
 
       -- TODO: seems like replacement to MRU - not really, it's project based
       require('mini.visits').setup()
+
       require('mini.pick').setup()
+
       require('mini.extra').setup()
 
       -- TODO:maye do it later
@@ -438,7 +406,38 @@ require("lazy").setup(
       })
       -- }}}
 
-    end,
+      require('mini.bracketed').setup()
+
+      require('mini.git').setup()
+
+      -- {{{ mini.hipatterns
+      local hipatterns = require('mini.hipatterns')
+      hipatterns.setup({
+        highlighters = {
+          fixme = { pattern = '%f[%w]()FIXME()%f[%W]', group = 'MiniHipatternsFixme' },
+          hack  = { pattern = '%f[%w]()HACK()%f[%W]',  group = 'MiniHipatternsHack'  },
+          error = { pattern = '%f[%w]()ERROR()%f[%W]', group = 'MiniHipatternsHack'  },
+          warn  = { pattern = '%f[%w]()WARN()%f[%W]',  group = 'MiniHipatternsHack'  },
+          todo  = { pattern = '%f[%w]()TODO()%f[%W]',  group = 'MiniHipatternsTodo'  },
+          note  = { pattern = '%f[%w]()NOTE()%f[%W]',  group = 'MiniHipatternsNote'  },
+
+          hex_color = hipatterns.gen_highlighter.hex_color(),
+        },
+
+      })
+    -- }}}
+
+    require('mini.notify').setup({
+      lsp_progress = {
+        enable = false,
+      },
+    })
+
+    require('mini.operators').setup()
+
+    require('mini.trailspace').setup()
+
+    end, -- end of mini
 
   },
   -- }}}
@@ -452,21 +451,6 @@ require("lazy").setup(
   },
 
   {
-    'akinsho/toggleterm.nvim',
-    event = "VeryLazy",
-    version = "*",
-    config = true
-  },
-
-  {
-     "folke/trouble.nvim",
-     enabled=false,
-     cmd = "Trouble",
-     dependencies = { "nvim-tree/nvim-web-devicons" },
-     opts = {},
-  },
-
-  {
       "ctrlpvim/ctrlp.vim",
       init = function()
         vim.g.ctrlp_max_history = 4000
@@ -475,18 +459,7 @@ require("lazy").setup(
       end,
   },
 
-  {
-    "nvim-pack/nvim-spectre",
-    dependencies = { "nvim-lua/plenary.nvim" },
-    build = false,
-    cmd = "Spectre",
-    opts = { open_cmd = "noswapfile vnew" },
-    -- stylua: ignore
-    keys = {
-      { "<leader>sr", function() require("spectre").open() end, desc = "Replace in Files (Spectre)" },
-    },
-  },
-
+  -- {{{ indent-blankline.nvim
   {
     "lukas-reineke/indent-blankline.nvim",
     event = "VeryLazy",
@@ -514,6 +487,7 @@ require("lazy").setup(
     },
     main = "ibl",
   },
+  -- }}}
 
   {
     "folke/persistence.nvim",
@@ -545,15 +519,12 @@ require("lazy").setup(
 
   { "folke/neodev.nvim", opts = {} },
 
+  -- {{{ nvim-cmp
   {
     -- Autocompletion
     'hrsh7th/nvim-cmp',
     event = "InsertEnter",
     dependencies = {
-      -- Snippet Engine & its associated nvim-cmp source
-      'L3MON4D3/LuaSnip',
-      'saadparwaiz1/cmp_luasnip',
-
       -- Adds LSP completion capabilities
       'hrsh7th/cmp-nvim-lsp',
 
@@ -561,26 +532,16 @@ require("lazy").setup(
       'hrsh7th/cmp-path',
       'hrsh7th/cmp-buffer',
 
-      -- Adds a number of user-friendly snippets
-      'rafamadriz/friendly-snippets',
-
-      -- Autopairs insert `(` after select function or method item
-      'windwp/nvim-autopairs',
-
     },
     config = function()
       local cmp = require 'cmp'
-      local luasnip = require 'luasnip'
-      require('luasnip.loaders.from_vscode').lazy_load()
       local cmp_kinds = { Text = '  ', Method = '  ', Function = '  ', Constructor = '  ',
         Field = '  ', Variable = '  ', Class = '  ', Interface = '  ', Module = '  ', Property = '  ',
-        Unit = '  ', Value = '  ', Enum = '  ', Keyword = '  ', Snippet = '  ', Color = '  ',
+        Unit = '  ', Value = '  ', Enum = '  ', Keyword = '  ', Color = '  ',
         File = '  ', Reference = '  ', Folder = '  ', EnumMember = '  ', Constant = '  ', Struct = '  ',
         Event = '  ', Operator = '  ', TypeParameter = '  ' }
       local border_opts = { border = "rounded", winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder,CursorLine:PmenuSel,Search:None" }
-      luasnip.config.setup {}
       cmp.setup {
-        snippet = { expand = function(args) luasnip.lsp_expand(args.body) end },
         formatting = {
           fields = { 'abbr', 'kind' },
           format = function(_, item) item.kind = (cmp_kinds[item.kind] or '') .. item.kind return item end,
@@ -596,29 +557,22 @@ require("lazy").setup(
           ['<C-e>'] = cmp.mapping.scroll_docs(-4),
           ['<C-y>'] = cmp.mapping.scroll_docs(4),
           ['<CR>'] = function(fallback) if cmp.visible() and cmp.get_active_entry() then cmp.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = false }) else fallback() end end,
-          ["<Tab>"] = cmp.mapping(function(fallback)
-            if luasnip.expand_or_jumpable() then
-              luasnip.expand_or_jump()
-            else
-              fallback()
-            end
-          end, { "i", "s" }),
         },
         sources = {
           { name = 'nvim_lsp' },
-          { name = 'luasnip' },
           { name = 'buffer' },
           { name = 'path' },
         },
       }
-      local cmp_autopairs = require('nvim-autopairs.completion.cmp')
       cmp.event:on(
         'confirm_done',
         cmp_autopairs.on_confirm_done()
       )
         end,
   },
+  -- }}}
 
+  -- {{{ nvim-lspconfig
   {
     -- LSP Configuration & Plugins
     'neovim/nvim-lspconfig',
@@ -638,24 +592,8 @@ require("lazy").setup(
           if desc then desc = ' ' .. desc end
           vim.keymap.set('n', keys, func, { buffer = bufnr, desc = desc })
         end
-        -- nmap('<leader>e', vim.lsp.buf.rename, 'Rename')
-        -- nmap('<leader>ca', vim.lsp.buf.code_action, 'Code Action')
-
-        -- nmap('gd', require("definition-or-references").definition_or_references, 'Goto Definition or references')
-        -- nmap('gI', vim.lsp.buf.implementation, 'Goto Implementation')
-        -- nmap('<leader>D', vim.lsp.buf.type_definition, 'Type Definition')
-
-        -- -- See `:help K` for why this keymap
-        -- nmap('<leader>k', vim.lsp.buf.hover, 'Hover Documentation')
-        -- nmap('<leader>K', vim.lsp.buf.signature_help, 'Signature Documentation')
-        --
-        -- -- Lesser used LSP functionality
-        -- nmap('gD', vim.lsp.buf.declaration, 'Goto Declaration')
-        -- nmap('<leader>wa', vim.lsp.buf.add_workspace_folder, 'Workspace Add Folder')
-        -- nmap('<leader>wr', vim.lsp.buf.remove_workspace_folder, 'Workspace Remove Folder')
-        -- nmap('<leader>wl', function() print(vim.inspect(vim.lsp.buf.list_workspace_folders())) end, 'Workspace List Folders')
-        --
-        -- nmap('<leader>ff', vim.lsp.buf.format, 'Format current buffer with LSP')
+        nmap('<leader>k', vim.lsp.buf.hover, 'Hover Documentation')
+        nmap('<leader>K', vim.lsp.buf.signature_help, 'Signature Documentation')
 
         -- Create a command `:Format` local to the LSP buffer
         vim.api.nvim_buf_create_user_command(bufnr, 'Format', function(_) vim.lsp.buf.format() end, { desc = 'Format current buffer with LSP' })
@@ -698,9 +636,6 @@ require("lazy").setup(
             },
           }
         end)
-        -- vim.api.nvim_buf_set_keymap(bufnr, "n", '<leader>=', 'v:lua.op_format_code()', {expr = true})
-        -- vim.api.nvim_buf_set_keymap(bufnr, "v", '<leader>=', 'v:lua.op_format_code()', {expr = true})
-        -- vim.api.nvim_buf_set_keymap(bufnr, "n", '<leader>==', "v:lua.op_format_code() .. '_'", { expr = true })
       end
 
       -- Enable the following language servers
@@ -753,8 +688,7 @@ require("lazy").setup(
       }
     end
   },
-
-
+  -- }}}
 
 }
 )
@@ -768,8 +702,6 @@ local opts = { noremap = true, silent = true }
 
 vim.api.nvim_set_keymap('n', '<Leader>e', ':lua PrepRgCommand()<CR>', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<Leader>r', ':lua PrepRgCommand(\'cword\')<CR>', { noremap = true, silent = true })
--- mapf("n", "<leader>r", function() require('rgflow').open(vim.fn.expand("<cword>"), nil, vim.fs.root(0, root_patterns), nil) end, {noremap = true})
--- mapf("n", "<leader>e", function() require('rgflow').open(nil, nil, vim.fs.root(0, root_patterns), nil) end, {noremap = true})
 mapf("n", "<leader>n", function() MiniPick.builtin.files({}, { source = { cwd = vim.fs.root(0, root_patterns), }, }) end, { desc = "Find files in project" })
 
 -- Synchronized scroll
@@ -786,7 +718,7 @@ map('n', '<Leader>du', ':diffupdate<CR>', opts)
 map('v', '<Leader>ld', ':Linediff<CR>', opts)
 
 map('n', '<Leader>m', ':CtrlPMRUFiles<CR>', opts)
-map('n', '<Leader>st', ':call StripTrailingWhitespaces()<CR>', opts)
+map('n', '<Leader>st', ':lua MiniTrailspace.trim()<CR>', opts)
 map('n', '<Leader>sw', ':set wrap!<CR>', opts)
 map('n', '<Leader>tc', ':tabclose<CR>', opts)
 map('n', '<Leader>tn', ':tabnew<CR>', opts)
@@ -1109,12 +1041,6 @@ function ToggleNumber()
     end
 end
 
-function StripTrailingWhitespaces()
-    local saved_view = vim.fn.winsaveview()
-    vim.api.nvim_command('%s/\\s\\+$//e')
-    vim.fn.winrestview(saved_view)
-end
-
 function DeleteInactiveBufs()
     local current_buffer = vim.api.nvim_get_current_buf()
     local buffers = vim.api.nvim_list_bufs()
@@ -1190,5 +1116,6 @@ if vim.fn.has("win32") == 1 and vim.g.configForWork == 1 then
 end
 
 -- TODO list
--- 
+--
 -- [ ] remap quickfix window map for split(now on C-X)
+-- [ ] add decription to maps
