@@ -1,5 +1,3 @@
-lua << EOF
-
 -- {{{ Mandatory editor settings
 if vim.fn.has("win32") == 1 then
   vim.g.configForWork        = 1
@@ -34,6 +32,7 @@ vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup(
 {
+  -- {{{ Mark:
   {
     "inkarkat/vim-mark",
     event = "VeryLazy",
@@ -45,7 +44,9 @@ require("lazy").setup(
         vim.g.mwDefaultHighlightingPalette = 'extended'
     end,
   },
+  -- }}}
 
+  -- {{{ RipGrep plugins
   {
     "wincent/ferret",
     enabled = false,
@@ -70,12 +71,16 @@ require("lazy").setup(
           hi link BqfPreviewRange Search
       ]])
 
-      require('bqf').setup({
+      require('bqf').setup(
+      {
           preview = {
+              auto_preview = false,
               win_height = 35,
               winblend = 5,
           },
       })
+
+      vim.g.bqf_enable_preview = 0
     end
   },
 
@@ -97,6 +102,9 @@ require("lazy").setup(
   { "Olical/vim-enmasse", cmd = "EnMasse" },
 
   { "yssl/QFEnter", enabled = false },
+
+  { "duane9/nvim-rg", },
+  --}}}
 
   -- {{{ Tabline
   {
@@ -192,6 +200,7 @@ require("lazy").setup(
   },
   -- }}}
 
+  -- {{{ Marks.nvim
   {
     "chentoast/marks.nvim",
     event = "VeryLazy",
@@ -199,8 +208,9 @@ require("lazy").setup(
       require'marks'.setup({})
     end,
   },
+  --}}}
 
-  -- {{{ todo-comments
+  -- {{{ Todo-comments
   {
     "folke/todo-comments.nvim",
     config = function()
@@ -288,7 +298,7 @@ require("lazy").setup(
 
   { "rakr/vim-one", priority = 1000 },
 
-  -- {{ Mini.nvim
+  -- {{{ Mini.nvim
   {
     "echasnovski/mini.nvim",
     init = function()
@@ -367,6 +377,7 @@ require("lazy").setup(
           suffix_last    = 'l', -- Suffix to search with "prev" method
           suffix_next    = 'n', -- Suffix to search with "next" method
         },
+        n_lines = 120,
       })
       -- }}}
 
@@ -378,10 +389,57 @@ require("lazy").setup(
 
       require('mini.splitjoin').setup()
 
+      -- {{{ Mini.clues
+      local miniclue = require('mini.clue')
+      miniclue.setup({
+        triggers = {
+          -- Leader triggers
+          { mode = 'n', keys = '<Leader>' },
+          { mode = 'x', keys = '<Leader>' },
+
+          -- Built-in completion
+          { mode = 'i', keys = '<C-x>' },
+
+          -- `g` key
+          { mode = 'n', keys = 'g' },
+          { mode = 'x', keys = 'g' },
+
+          -- Marks
+          { mode = 'n', keys = "'" },
+          { mode = 'n', keys = '`' },
+          { mode = 'x', keys = "'" },
+          { mode = 'x', keys = '`' },
+
+          -- Registers
+          { mode = 'n', keys = '"' },
+          { mode = 'x', keys = '"' },
+          { mode = 'i', keys = '<C-r>' },
+          { mode = 'c', keys = '<C-r>' },
+
+          -- Window commands
+          { mode = 'n', keys = '<C-w>' },
+
+          -- `z` key
+          { mode = 'n', keys = 'z' },
+          { mode = 'x', keys = 'z' },
+        },
+
+        clues = {
+          -- Enhance this by adding descriptions for <Leader> mapping groups
+          miniclue.gen_clues.builtin_completion(),
+          miniclue.gen_clues.g(),
+          miniclue.gen_clues.marks(),
+          miniclue.gen_clues.registers(),
+          miniclue.gen_clues.windows(),
+          miniclue.gen_clues.z(),
+        },
+      })
+      -- }}}
+
     end,
 
   },
-  -- }}
+  -- }}}
 
   {
     "dstein64/vim-startuptime",
@@ -413,16 +471,6 @@ require("lazy").setup(
         vim.g.ctrlp_user_command = 'rg %s --files --color=never --glob ""'
         vim.g.ctrlp_use_caching = 0
       end,
-  },
-
-  {
-    "folke/which-key.nvim",
-    event = "VeryLazy",
-    init = function()
-      vim.o.timeout = true
-      vim.o.timeoutlen = 900
-    end,
-    opts = {}
   },
 
   {
@@ -493,6 +541,219 @@ require("lazy").setup(
     end,
   },
 
+  { "folke/neodev.nvim", opts = {} },
+
+  {
+    -- Autocompletion
+    'hrsh7th/nvim-cmp',
+    event = "InsertEnter",
+    dependencies = {
+      -- Snippet Engine & its associated nvim-cmp source
+      'L3MON4D3/LuaSnip',
+      'saadparwaiz1/cmp_luasnip',
+
+      -- Adds LSP completion capabilities
+      'hrsh7th/cmp-nvim-lsp',
+
+      -- other sources
+      'hrsh7th/cmp-path',
+      'hrsh7th/cmp-buffer',
+
+      -- Adds a number of user-friendly snippets
+      'rafamadriz/friendly-snippets',
+
+      -- Autopairs insert `(` after select function or method item
+      'windwp/nvim-autopairs',
+
+    },
+    config = function()
+      local cmp = require 'cmp'
+      local luasnip = require 'luasnip'
+      require('luasnip.loaders.from_vscode').lazy_load()
+      local cmp_kinds = { Text = '  ', Method = '  ', Function = '  ', Constructor = '  ',
+        Field = '  ', Variable = '  ', Class = '  ', Interface = '  ', Module = '  ', Property = '  ',
+        Unit = '  ', Value = '  ', Enum = '  ', Keyword = '  ', Snippet = '  ', Color = '  ',
+        File = '  ', Reference = '  ', Folder = '  ', EnumMember = '  ', Constant = '  ', Struct = '  ',
+        Event = '  ', Operator = '  ', TypeParameter = '  ' }
+      local border_opts = { border = "rounded", winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder,CursorLine:PmenuSel,Search:None" }
+      luasnip.config.setup {}
+      cmp.setup {
+        snippet = { expand = function(args) luasnip.lsp_expand(args.body) end },
+        formatting = {
+          fields = { 'abbr', 'kind' },
+          format = function(_, item) item.kind = (cmp_kinds[item.kind] or '') .. item.kind return item end,
+        },
+        window = {
+          completion = cmp.config.window.bordered(border_opts),
+          documentation = cmp.config.window.bordered(border_opts),
+        },
+        experimental = { ghost_text = true },
+        mapping = cmp.mapping.preset.insert {
+          ['<C-n>'] = cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Replace }),
+          ['<C-p>'] = cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Replace }),
+          ['<C-e>'] = cmp.mapping.scroll_docs(-4),
+          ['<C-y>'] = cmp.mapping.scroll_docs(4),
+          ['<CR>'] = function(fallback) if cmp.visible() and cmp.get_active_entry() then cmp.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = false }) else fallback() end end,
+          ["<Tab>"] = cmp.mapping(function(fallback)
+            if luasnip.expand_or_jumpable() then
+              luasnip.expand_or_jump()
+            else
+              fallback()
+            end
+          end, { "i", "s" }),
+        },
+        sources = {
+          { name = 'nvim_lsp' },
+          { name = 'luasnip' },
+          { name = 'buffer' },
+          { name = 'path' },
+        },
+      }
+      local cmp_autopairs = require('nvim-autopairs.completion.cmp')
+      cmp.event:on(
+        'confirm_done',
+        cmp_autopairs.on_confirm_done()
+      )
+        end,
+  },
+
+  {
+    -- LSP Configuration & Plugins
+    'neovim/nvim-lspconfig',
+    dependencies = {
+      -- Automatically install LSPs to stdpath for neovim
+      { 'williamboman/mason.nvim', config = true, event = "VeryLazy" },
+      { 'williamboman/mason-lspconfig.nvim', event = "VeryLazy", },
+
+      -- Additional lua configuration, makes nvim tinkering amazing!
+      'folke/neodev.nvim',
+    },
+    config = function()
+
+      --  This function gets run when an LSP connects to a particular buffer.
+      local on_attach = function(_, bufnr)
+        local nmap = function(keys, func, desc)
+          if desc then desc = ' ' .. desc end
+          vim.keymap.set('n', keys, func, { buffer = bufnr, desc = desc })
+        end
+        -- nmap('<leader>e', vim.lsp.buf.rename, 'Rename')
+        -- nmap('<leader>ca', vim.lsp.buf.code_action, 'Code Action')
+
+        -- nmap('gd', require("definition-or-references").definition_or_references, 'Goto Definition or references')
+        -- nmap('gI', vim.lsp.buf.implementation, 'Goto Implementation')
+        -- nmap('<leader>D', vim.lsp.buf.type_definition, 'Type Definition')
+
+        -- -- See `:help K` for why this keymap
+        -- nmap('<leader>k', vim.lsp.buf.hover, 'Hover Documentation')
+        -- nmap('<leader>K', vim.lsp.buf.signature_help, 'Signature Documentation')
+        --
+        -- -- Lesser used LSP functionality
+        -- nmap('gD', vim.lsp.buf.declaration, 'Goto Declaration')
+        -- nmap('<leader>wa', vim.lsp.buf.add_workspace_folder, 'Workspace Add Folder')
+        -- nmap('<leader>wr', vim.lsp.buf.remove_workspace_folder, 'Workspace Remove Folder')
+        -- nmap('<leader>wl', function() print(vim.inspect(vim.lsp.buf.list_workspace_folders())) end, 'Workspace List Folders')
+        --
+        -- nmap('<leader>ff', vim.lsp.buf.format, 'Format current buffer with LSP')
+
+        -- Create a command `:Format` local to the LSP buffer
+        vim.api.nvim_buf_create_user_command(bufnr, 'Format', function(_) vim.lsp.buf.format() end, { desc = 'Format current buffer with LSP' })
+
+        -- Range formatting via motion.
+        -- https://github.com/neovim/neovim/issues/14680
+        local operator_register = function(name, fn)
+          _G[name] = function(type)
+            if type == nil then vim.opt.opfunc = 'v:lua.' .. name return 'g@' -- calls back to this function
+            end
+            -- boilerplate save, see :help g@
+            local sel_save = vim.opt.selection
+            local reg_save = vim.fn.getreginfo('"')
+            local cb_save = vim.opt.clipboard
+            local visual_marks_save = { vim.fn.getpos("'<"), vim.fn.getpos("'>") }
+
+            -- boilerplate setup
+            vim.opt.clipboard = ''
+            vim.opt.selection = 'inclusive'
+
+            local status, err = pcall(fn, type)
+
+            -- boilerplate restore
+            vim.fn.setreg('"', reg_save)
+            vim.fn.setpos("'<", visual_marks_save[0])
+            vim.fn.setpos("'>", visual_marks_save[1])
+            vim.opt.clipboard = cb_save
+            vim.opt.selection = sel_save
+
+            if not status then
+              error(err)
+            end
+          end
+        end
+        operator_register('op_format_code', function(type)
+          vim.lsp.buf.format {
+            range = {
+              ['start'] = vim.api.nvim_buf_get_mark(0, '['),
+              ['end'] = vim.api.nvim_buf_get_mark(0, ']'),
+            },
+          }
+        end)
+        -- vim.api.nvim_buf_set_keymap(bufnr, "n", '<leader>=', 'v:lua.op_format_code()', {expr = true})
+        -- vim.api.nvim_buf_set_keymap(bufnr, "v", '<leader>=', 'v:lua.op_format_code()', {expr = true})
+        -- vim.api.nvim_buf_set_keymap(bufnr, "n", '<leader>==', "v:lua.op_format_code() .. '_'", { expr = true })
+      end
+
+      -- Enable the following language servers
+      local servers = {
+        -- clangd = {
+        --   cmd = { 'clangd', '--background-index' }, -- Adjust the command as needed
+        --   filetypes = { 'c', 'cpp', 'c.m4', 'h.m4' }, -- Specify the filetypes you're working with
+        --   root_dir = function(fname)
+        --     -- Customize this function to return the root directory for your project
+        --     return vim.fs.root(vim.fn.expand('%:p'), root_patterns) or vim.fn.getcwd()
+        --   end,
+        -- },
+        -- clangd = {},
+        -- gopls = {},
+        -- pyright = {},
+        -- rust_analyzer = {},
+        -- tsserver = {},
+        -- html = { filetypes = { 'html', 'twig', 'hbs'} },
+
+        lua_ls = {
+          Lua = {
+            runtime = { version = 'LuaJIT' },
+            diagnostics = { globals = { 'vim', 'require' } },
+            workspace = { checkThirdParty = false, library = vim.api.nvim_get_runtime_file("", true) },
+            telemetry = { enable = false },
+          },
+        },
+      }
+
+      -- nvim-cmp supports additional completion capabilities, so broadcast that to servers
+      local capabilities = vim.lsp.protocol.make_client_capabilities()
+      capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
+
+      -- Ensure the servers above are installed
+      local mason_lspconfig = require('mason-lspconfig')
+
+      mason_lspconfig.setup {
+        ensure_installed = vim.tbl_keys(servers),
+      }
+
+      mason_lspconfig.setup_handlers {
+        function(server_name)
+          require('lspconfig')[server_name].setup {
+            capabilities = capabilities,
+            on_attach = on_attach,
+            settings = servers[server_name],
+            filetypes = (servers[server_name] or {}).filetypes,
+          }
+        end
+      }
+    end
+  },
+
+
+
 }
 )
 -- }}}
@@ -503,8 +764,10 @@ local map  = vim.api.nvim_set_keymap
 local mapf = vim.keymap.set
 local opts = { noremap = true, silent = true }
 
-mapf("n", "<leader>r", function() require('rgflow').open(vim.fn.expand("<cword>"), nil, vim.fs.root(0, root_patterns), nil) end, {noremap = true})
-mapf("n", "<leader>e", function() require('rgflow').open(nil, nil, vim.fs.root(0, root_patterns), nil) end, {noremap = true})
+vim.api.nvim_set_keymap('n', '<Leader>e', ':lua PrepRgCommand()<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<Leader>r', ':lua PrepRgCommand(\'cword\')<CR>', { noremap = true, silent = true })
+-- mapf("n", "<leader>r", function() require('rgflow').open(vim.fn.expand("<cword>"), nil, vim.fs.root(0, root_patterns), nil) end, {noremap = true})
+-- mapf("n", "<leader>e", function() require('rgflow').open(nil, nil, vim.fs.root(0, root_patterns), nil) end, {noremap = true})
 mapf("n", "<leader>n", function() MiniPick.builtin.files({}, { source = { cwd = vim.fs.root(0, root_patterns), }, }) end, { desc = "Find files in project" })
 
 -- Synchronized scroll
@@ -530,18 +793,14 @@ map('n', '<Leader>c', ':call ToggleColorColumn()<CR>', opts)
 map('n', '<leader>S', ':Pick spellsuggest<CR>', opts)
 map('n', '<leader>ov', ':exe ":silent !code %"<CR>:redraw!<CR>', opts)
 
--- Ack current word
--- local rootDir = vim.fn["FindRootDirectory"]()
--- map('n', '<Leader>e', ':Ack  <C-R>='..rootDir..'<C-Left><C-Left><C-Left><C-Left><C-Right><Right>', opts)
---
--- -- Ack word under cursor
--- map('n', '<Leader>r', ':Ack <C-R><C-W> <C-R>=FindRootDirectory()<CR><C-Left><C-Left><C-Left><C-Left><C-Right><Right><CR>', opts)
+vim.api.nvim_set_keymap('n', '<C-p>', ':BqfToggle<CR>', { noremap = true, silent = true })
 
 -- Remap jj to <Esc> in insert mode
 map('i', 'jj', '<Esc>', {noremap = true})
 
 -- Paste from clipboard in insert mode
 map('i', '<S-Insert>', '<C-R>+', opts)
+mapf('c', '<C-v>', '<C-R>+')
 
 -- Replace the selection with the buffer
 map('v', 'r', '"_dp', opts)
@@ -612,8 +871,8 @@ map('n', '<C-Down>', ']c', opts)
 map('n', '<C-Up>', '[c', opts)
 
 -- Faster indentation
--- map('n', '>', '>>', opts)
--- map('n', '<', '<<', opts)
+map('n', '>', '>>', opts)
+map('n', '<', '<<', opts)
 
 -- F* mappings
 map('n', '<F2>', ':cprevious<CR>', opts)
@@ -649,6 +908,7 @@ vim.api.nvim_create_user_command('VScratch', function() vim.cmd('vsplit') vim.cm
 -- }}}
 
 -- {{{ Auto-root
+-- TODO: this does cwd I think and brakes my flow
 local augroup = vim.api.nvim_create_augroup('AutoCD', {})
 
 vim.api.nvim_create_autocmd({ 'VimEnter', 'BufEnter', 'BufReadPost' }, {
@@ -696,7 +956,8 @@ vim.opt.encoding   = 'utf-8'
 vim.scriptencoding = 'utf-8'
 
 vim.opt.clipboard:append('unnamedplus')
-vim.opt.foldmethod = 'manual'
+vim.opt.foldmethod = "marker"
+vim.opt.foldmarker = "{{{,}}}"
 vim.opt.autochdir  = true
 
 -- This makes vim act like all other editors, buffers can exist in the background without being in a window.
@@ -829,6 +1090,25 @@ vim.api.nvim_create_autocmd('SwapExists', {
 
 --{{{ Functions
 
+-- TODO:: replace all roots with this
+function GetRootDir()
+    return vim.fs.root(vim.fn.expand('%:p'), root_patterns) or vim.fn.getcwd()
+end
+
+function PrepRgCommand(search_term)
+    local root_dir = GetRootDir()
+    local current_word = ''
+    local move_to_term = ''
+    if search_term == 'cword' then
+      current_word = vim.fn.expand('<cword>')
+    else
+      move_to_term = '<C-Left><C-Left><C-Left><C-Left><C-Right><Right>'
+    end
+    local cmd = ':Rg ' .. current_word .. ' ' .. root_dir..move_to_term
+
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(cmd, true, false, true), 'n', true)
+end
+
 function ToggleColorColumn()
     if vim.wo.colorcolumn ~= '' then
         vim.wo.colorcolumn = ''
@@ -923,12 +1203,9 @@ if vim.fn.has("win32") == 1 and vim.g.configForWork == 1 then
   local userProfile = vim.fn.substitute(vim.env.USERPROFILE, '\\', '/', 'g')
 
   -- Work specific things
-  vim.cmd('source ' .. userProfile .. '/AppData/Local/nvim/eb.vim')
+  vim.cmd('source ' .. userProfile .. '/AppData/Local/nvim/eb.lua')
 end
-EOF
 
-" TODO list
-"
-" [ ] remap quickfix window map for split(now on C-X)
-" [ ] which-key takes a lot of time in C-R
-" ex: set foldmethod=marker
+-- TODO list
+-- 
+-- [ ] remap quickfix window map for split(now on C-X)
