@@ -7,12 +7,6 @@ if vim.fn.has("win32") == 1 then
   vim.g.loaded_node_provider = 0
   vim.g.loaded_ruby_provider = 0
 end
-
-vim.g.mapleader      = ' '
-vim.g.maplocalleader = ' '
-
-local root_patterns = {'.git', '.svn', 'util', 'plugin.xml'}
-
 --}}}
 
 -- {{{ Plugins func
@@ -32,6 +26,184 @@ vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup(
 {
+
+  -- {{{ Mini.nvim
+  {
+    "echasnovski/mini.nvim",
+    init = function()
+      require('mini.basics').setup()
+
+      require('mini.ai').setup()
+
+      require('mini.align').setup({
+        mappings = {
+          start = '<Enter>',
+          start_with_preview = 'gA',
+        }
+      })
+
+      require('mini.comment').setup()
+
+      require('mini.jump').setup()
+
+      -- TODO: seems like replacement to MRU - not really, it's project based
+      require('mini.visits').setup()
+
+      require('mini.pick').setup()
+
+      require('mini.extra').setup()
+
+      -- TODO:maye do it later
+      --require('mini.completion').setup()
+
+      require('mini.pairs').setup()
+
+      -- gS, go split
+      require('mini.splitjoin').setup()
+
+      -- {{{ mini.statusline
+      require('mini.statusline').setup(
+      {
+        -- Content of statusline as functions which return statusline string. See
+        -- `:h statusline` and code of default contents (used instead of `nil`).
+        content = {
+          -- Content for active window
+          active = function()
+            local mode, mode_hl = MiniStatusline.section_mode { trunc_width = 120 }
+            local git = MiniStatusline.section_git { trunc_width = 75 }
+            local diagnostics = MiniStatusline.section_diagnostics { trunc_width = 75 }
+            local filename = MiniStatusline.section_filename { trunc_width = 140 }
+            local fileinfo = MiniStatusline.section_fileinfo { trunc_width = 120 }
+            local location = MiniStatusline.section_location { trunc_width = 75 }
+            local search = MiniStatusline.section_searchcount { trunc_width = 75 }
+            -- vim.opt.laststatus = 3
+
+            return MiniStatusline.combine_groups {
+              { hl = mode_hl },
+              { strings = { mode } },
+              { hl = 'MiniStatuslineInactive', strings = { git, diagnostics, search } },
+              '%=', -- Start center alignment
+              '%<', -- Mark general truncate point
+              { strings = { filename } },
+              '%=', -- start right alignment
+              { hl = 'MiniStatuslineInactive', strings = { fileinfo } },
+              { strings = { location } },
+            }
+          end,
+          inactive = function() end,
+        },
+        set_vim_settings = false,
+      })
+      -- }}}
+
+      -- {{{ mini.surround
+      require('mini.surround').setup({
+        mappings = {
+          add            = 'S', -- Add surrounding in Normal and Visual modes
+          delete         = 'ds', -- Delete surrounding
+          replace        = 'cs', -- Replace surrounding
+          update_n_lines = 'sn', -- Update `n_lines`
+
+          suffix_last    = 'l', -- Suffix to search with "prev" method
+          suffix_next    = 'n', -- Suffix to search with "next" method
+        },
+        n_lines = 120,
+      })
+      -- }}}
+
+      require('mini.diff').setup()
+      vim.keymap.set('n', '<leader>go', ':lua MiniDiff.toggle_overlay()<CR>', { desc = 'Toggle Diff Overlay' })
+
+      -- TODO: replace tabby with this one after removing the buffers from the tab
+      -- require('mini.tabline').setup({})
+      vim.o.showtabline = 2
+      vim.opt.sessionoptions = 'curdir,folds,globals,help,tabpages,terminal,winsize'
+
+      require('mini.splitjoin').setup()
+
+      -- {{{ Mini.clues
+      local miniclue = require('mini.clue')
+      miniclue.setup({
+        triggers = {
+          -- Leader triggers
+          { mode = 'n', keys = '<Leader>' },
+          { mode = 'x', keys = '<Leader>' },
+
+          -- Built-in completion
+          { mode = 'i', keys = '<C-x>' },
+
+          -- `g` key
+          { mode = 'n', keys = 'g' },
+          { mode = 'x', keys = 'g' },
+
+          -- Marks
+          { mode = 'n', keys = "'" },
+          { mode = 'n', keys = '`' },
+          { mode = 'x', keys = "'" },
+          { mode = 'x', keys = '`' },
+
+          -- Registers
+          { mode = 'n', keys = '"' },
+          { mode = 'x', keys = '"' },
+          { mode = 'i', keys = '<C-r>' },
+          { mode = 'c', keys = '<C-r>' },
+
+          -- Window commands
+          { mode = 'n', keys = '<C-w>' },
+
+          -- `z` key
+          { mode = 'n', keys = 'z' },
+          { mode = 'x', keys = 'z' },
+        },
+
+        clues = {
+          -- Enhance this by adding descriptions for <Leader> mapping groups
+          miniclue.gen_clues.builtin_completion(),
+          miniclue.gen_clues.g(),
+          miniclue.gen_clues.marks(),
+          miniclue.gen_clues.registers(),
+          miniclue.gen_clues.windows(),
+          miniclue.gen_clues.z(),
+        },
+      })
+      -- }}}
+
+      require('mini.bracketed').setup()
+
+      require('mini.git').setup()
+
+      -- {{{ mini.hipatterns
+      local hipatterns = require('mini.hipatterns')
+      hipatterns.setup({
+        highlighters = {
+          fixme = { pattern = '%f[%w]()FIXME:()%f[%W]', group = 'MiniHipatternsFixme' },
+          hack  = { pattern = '%f[%w]()HACK:()%f[%W]',  group = 'MiniHipatternsHack'  },
+          error = { pattern = '%f[%w]()ERROR:()%f[%W]', group = 'MiniHipatternsHack'  },
+          warn  = { pattern = '%f[%w]()WARN:()%f[%W]',  group = 'MiniHipatternsHack'  },
+          todo  = { pattern = '%f[%w]()TODO:()%f[%W]',  group = 'MiniHipatternsTodo'  },
+          note  = { pattern = '%f[%w]()NOTE:()%f[%W]',  group = 'MiniHipatternsNote'  },
+
+          hex_color = hipatterns.gen_highlighter.hex_color(),
+        },
+
+      })
+    -- }}}
+
+    require('mini.notify').setup({
+      lsp_progress = {
+        enable = false,
+      },
+    })
+
+    require('mini.operators').setup()
+
+    require('mini.trailspace').setup()
+
+    end, -- end of mini
+
+  },
+  -- }}}
+
   -- {{{ Mark:
   {
     "inkarkat/vim-mark",
@@ -49,57 +221,37 @@ require("lazy").setup(
   -- {{{ RipGrep plugins
   {
     "wincent/ferret",
-    enabled = false,
+    dependencies = {
+      "yssl/QFEnter",
+    },
     init = function()
-      vim.g.FerretAutojump = 0
-      vim.g.FerretHlsearch = 1
-      vim.g.FerretMap = 0
-      vim.g.FerretQFCommands = 0
-      vim.g.FerretExecutableArguments = { rg = '-H -S --sort path --column --line-number --no-heading --ignore-file ~/ignore' }
+      vim.g.FerretAutojump            = 0
+      vim.g.FerretHlsearch            = 1
+      vim.g.FerretMap                 = 0
+      vim.g.FerretQFCommands          = 0
+      vim.g.FerretExecutableArguments = { rg = '-H -S --sort path --column --line-number --no-heading --ignore-file '..vim.env.HOME..'/ignore' }
+
+      vim.g.qfenter_keymap = {
+        open = { '<CR>' },
+        vopen = { '<C-v>' },
+        hopen = { '<C-s>' },
+        topen = { '<C-t>' },
+      }
+
+      -- keep the quickfix window open
+      vim.cmd('autocmd FileType qf nnoremap <buffer> <C-t> <C-w><CR><C-w>T')
+
     end
   },
-
-  -- {{{ nvim-bqf
-  {
-    -- TODO: do I really need this?, the preview is annoying
-    'kevinhwang91/nvim-bqf',
-    event = "VeryLazy",
-    ft = 'qf',
-    init = function()
-      vim.cmd([[
-          hi BqfPreviewBorder guifg=#3e8e2d ctermfg=71
-          hi BqfPreviewTitle guifg=#3e8e2d ctermfg=71
-          hi BqfPreviewThumb guibg=#3e8e2d ctermbg=71
-          hi link BqfPreviewRange Search
-      ]])
-
-      require('bqf').setup(
-      {
-          preview = {
-              auto_preview = false,
-              win_height = 35,
-              winblend = 5,
-          },
-      })
-
-      vim.g.bqf_enable_preview = 0
-    end
-  },
-  -- }}}
 
   { "Olical/vim-enmasse", cmd = "EnMasse" },
 
-  {
-    "duane9/nvim-rg",
-    init = function()
-      vim.g.rg_command = '--smart-case -H -S --sort path --column --line-number --no-heading --ignore-file '
-    end
-  },
   --}}}
 
   -- {{{ Tabline
   {
     "nanozuki/tabby.nvim",
+    enabled = true,
     lazy = false,
     dependencies = {
       "nvim-tree/nvim-web-devicons",
@@ -206,7 +358,6 @@ require("lazy").setup(
   -- {{{ Treesitter
   {
     "nvim-treesitter/nvim-treesitter",
-    enabled=false,
     version = false,
     build = ":TSUpdate",
     event = { "VeryLazy" },
@@ -216,32 +367,13 @@ require("lazy").setup(
       require("nvim-treesitter.query_predicates")
     end,
     cmd = { "TSUpdateSync", "TSUpdate", "TSInstall" },
-    keys = {
-      { "<c-space>", desc = "Increment Selection" },
-      { "<bs>", desc = "Decrement Selection", mode = "x" },
-    },
-    opts = {
-      highlight = { enable = true },
-      indent = { enable = false },
-      ensure_installed = {
-        "bash",
-        "c",
-        "diff",
-        "jsdoc",
-        "json",
-        "lua",
-        "luadoc",
-        "luap",
-        "markdown",
-        "markdown_inline",
-        "python",
-        "regex",
-        "vim",
-        "vimdoc",
-        "xml",
-        "yaml",
-      },
-    },
+		config = function()
+			require("nvim-treesitter.configs").setup({
+				ensure_installed = { "c", "lua" },
+				auto_install = true,
+				highlight = { enable = true },
+			})
+		end,
   },
   -- }}}
 
@@ -263,184 +395,6 @@ require("lazy").setup(
   { "nlknguyen/papercolor-theme", priority = 1000 },
 
   { "rakr/vim-one", priority = 1000 },
-
-  -- {{{ Mini.nvim
-  {
-    "echasnovski/mini.nvim",
-    init = function()
-      require('mini.basics').setup()
-
-      require('mini.ai').setup()
-
-      require('mini.align').setup({
-        mappings = {
-          start = '<Enter>',
-          start_with_preview = 'gA',
-        }
-      })
-
-      require('mini.comment').setup()
-
-      require('mini.jump').setup()
-
-      -- TODO: seems like replacement to MRU - not really, it's project based
-      require('mini.visits').setup()
-
-      require('mini.pick').setup()
-
-      require('mini.extra').setup()
-
-      -- TODO:maye do it later
-      --require('mini.completion').setup()
-
-      require('mini.pairs').setup()
-
-      -- gS, go split TODO: it seems it removes characters
-      require('mini.splitjoin').setup()
-
-      -- {{{ mini.statusline
-      require('mini.statusline').setup(
-      {
-        -- Content of statusline as functions which return statusline string. See
-        -- `:h statusline` and code of default contents (used instead of `nil`).
-        content = {
-          -- Content for active window
-          active = function()
-            local mode, mode_hl = MiniStatusline.section_mode { trunc_width = 120 }
-            local git = MiniStatusline.section_git { trunc_width = 75 }
-            local diagnostics = MiniStatusline.section_diagnostics { trunc_width = 75 }
-            local filename = MiniStatusline.section_filename { trunc_width = 140 }
-            local fileinfo = MiniStatusline.section_fileinfo { trunc_width = 120 }
-            local location = MiniStatusline.section_location { trunc_width = 75 }
-            local search = MiniStatusline.section_searchcount { trunc_width = 75 }
-            -- vim.opt.laststatus = 3
-
-            return MiniStatusline.combine_groups {
-              { hl = mode_hl },
-              { strings = { mode } },
-              { hl = 'MiniStatuslineInactive', strings = { git, diagnostics, search } },
-              '%=', -- Start center alignment
-              '%<', -- Mark general truncate point
-              { strings = { filename } },
-              '%=', -- start right alignment
-              { hl = 'MiniStatuslineInactive', strings = { fileinfo } },
-              { strings = { location } },
-            }
-          end,
-          inactive = function() end,
-        },
-        set_vim_settings = false,
-      })
-      -- }}}
-
-      -- {{{ mini.surround
-      require('mini.surround').setup({
-        mappings = {
-          add            = 'S', -- Add surrounding in Normal and Visual modes
-          delete         = 'ds', -- Delete surrounding
-          find           = 'sf', -- Find surrounding (to the right)
-          find_left      = 'sF', -- Find surrounding (to the left)
-          highlight      = 'sh', -- Highlight surrounding
-          replace        = 'sr', -- Replace surrounding
-          update_n_lines = 'sn', -- Update `n_lines`
-
-          suffix_last    = 'l', -- Suffix to search with "prev" method
-          suffix_next    = 'n', -- Suffix to search with "next" method
-        },
-        n_lines = 120,
-      })
-      -- }}}
-
-      require('mini.diff').setup()
-      vim.keymap.set('n', '<leader>go', ':lua MiniDiff.toggle_overlay()<CR>', { desc = 'Toggle Diff Overlay' })
-
-      -- TODO: replace tabby with this one after removing the buffers from the tab
-      -- require('mini.tabline').setup({})
-
-      require('mini.splitjoin').setup()
-
-      -- {{{ Mini.clues
-      local miniclue = require('mini.clue')
-      miniclue.setup({
-        triggers = {
-          -- Leader triggers
-          { mode = 'n', keys = '<Leader>' },
-          { mode = 'x', keys = '<Leader>' },
-
-          -- Built-in completion
-          { mode = 'i', keys = '<C-x>' },
-
-          -- `g` key
-          { mode = 'n', keys = 'g' },
-          { mode = 'x', keys = 'g' },
-
-          -- Marks
-          { mode = 'n', keys = "'" },
-          { mode = 'n', keys = '`' },
-          { mode = 'x', keys = "'" },
-          { mode = 'x', keys = '`' },
-
-          -- Registers
-          { mode = 'n', keys = '"' },
-          { mode = 'x', keys = '"' },
-          { mode = 'i', keys = '<C-r>' },
-          { mode = 'c', keys = '<C-r>' },
-
-          -- Window commands
-          { mode = 'n', keys = '<C-w>' },
-
-          -- `z` key
-          { mode = 'n', keys = 'z' },
-          { mode = 'x', keys = 'z' },
-        },
-
-        clues = {
-          -- Enhance this by adding descriptions for <Leader> mapping groups
-          miniclue.gen_clues.builtin_completion(),
-          miniclue.gen_clues.g(),
-          miniclue.gen_clues.marks(),
-          miniclue.gen_clues.registers(),
-          miniclue.gen_clues.windows(),
-          miniclue.gen_clues.z(),
-        },
-      })
-      -- }}}
-
-      require('mini.bracketed').setup()
-
-      require('mini.git').setup()
-
-      -- {{{ mini.hipatterns
-      local hipatterns = require('mini.hipatterns')
-      hipatterns.setup({
-        highlighters = {
-          fixme = { pattern = '%f[%w]()FIXME()%f[%W]', group = 'MiniHipatternsFixme' },
-          hack  = { pattern = '%f[%w]()HACK()%f[%W]',  group = 'MiniHipatternsHack'  },
-          error = { pattern = '%f[%w]()ERROR()%f[%W]', group = 'MiniHipatternsHack'  },
-          warn  = { pattern = '%f[%w]()WARN()%f[%W]',  group = 'MiniHipatternsHack'  },
-          todo  = { pattern = '%f[%w]()TODO()%f[%W]',  group = 'MiniHipatternsTodo'  },
-          note  = { pattern = '%f[%w]()NOTE()%f[%W]',  group = 'MiniHipatternsNote'  },
-
-          hex_color = hipatterns.gen_highlighter.hex_color(),
-        },
-
-      })
-    -- }}}
-
-    require('mini.notify').setup({
-      lsp_progress = {
-        enable = false,
-      },
-    })
-
-    require('mini.operators').setup()
-
-    require('mini.trailspace').setup()
-
-    end, -- end of mini
-
-  },
-  -- }}}
 
   {
     "dstein64/vim-startuptime",
@@ -564,11 +518,7 @@ require("lazy").setup(
           { name = 'path' },
         },
       }
-      cmp.event:on(
-        'confirm_done',
-        cmp_autopairs.on_confirm_done()
-      )
-        end,
+    end,
   },
   -- }}}
 
@@ -690,6 +640,17 @@ require("lazy").setup(
   },
   -- }}}
 
+  {
+    "levouh/tint.nvim",
+    init = function()
+      require("tint").setup({
+        tint = -15,  -- Darken colors, use a positive value to brighten
+        saturation = 0.6,  -- Saturation to preserve
+      })
+    end,
+
+  },
+
 }
 )
 -- }}}
@@ -700,128 +661,115 @@ local map  = vim.api.nvim_set_keymap
 local mapf = vim.keymap.set
 local opts = { noremap = true, silent = true }
 
-vim.api.nvim_set_keymap('n', '<Leader>e', ':lua PrepRgCommand()<CR>', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<Leader>r', ':lua PrepRgCommand(\'cword\')<CR>', { noremap = true, silent = true })
-mapf("n", "<leader>n", function() MiniPick.builtin.files({}, { source = { cwd = vim.fs.root(0, root_patterns), }, }) end, { desc = "Find files in project" })
+map('n', '<Leader>e', ':lua PrepRgCommand()<CR>', { noremap = true, silent = true, desc = "Call ripgrep in the root directory" })
+map('n', '<Leader>r', ':lua PrepRgCommand(\'cword\')<CR>', { noremap = true, silent = true, desc = "Call ripgrep with <cword> in the root directory" })
+mapf("n", "<leader>n", function() MiniPick.builtin.files({}, { source = { cwd = GetRootDir(), }, }) end, { desc = "Find files in project" })
 
 -- Synchronized scroll
-map('n', '<Leader>sz', ':set scb!<CR>', opts)
+map('n', '<Leader>sz', ':set scb!<CR>',                  { noremap = true, silent = true, desc = "Sync scroll between windows" })
 
 -- Delete inactive buffers
-map('n', '<Leader>db', ':call DeleteInactiveBufs()<CR>', opts)
+map('n', '<Leader>db', ':call DeleteInactiveBufs()<CR>', { noremap = true, silent = true, desc = "Delette inactive buffers" })
 
-map('n', '<Leader>dd', ':diffthis<CR>', opts)
-map('n', '<Leader>do', ':diffoff<CR>', opts)
-map('n', '<Leader>dp', ':diffput<CR>', opts)
-map('n', '<Leader>dg', ':diffget<CR>', opts)
-map('n', '<Leader>du', ':diffupdate<CR>', opts)
-map('v', '<Leader>ld', ':Linediff<CR>', opts)
+map('n', '<Leader>dd', ':diffthis<CR>',                  { noremap = true, silent = true, desc = "Diff this file" })
+map('n', '<Leader>do', ':diffoff<CR>',                   { noremap = true, silent = true, desc = "Diff off" })
+map('n', '<Leader>dp', ':diffput<CR>',                   { noremap = true, silent = true, desc = "Diff put" })
+map('n', '<Leader>dg', ':diffget<CR>',                   { noremap = true, silent = true, desc = "Diff get" })
+map('n', '<Leader>du', ':diffupdate<CR>',                { noremap = true, silent = true, desc = "Diff update" })
+map('v', '<Leader>ld', ':Linediff<CR>',                  { noremap = true, silent = true, desc = "Line diff" })
 
-map('n', '<Leader>m', ':CtrlPMRUFiles<CR>', opts)
-map('n', '<Leader>st', ':lua MiniTrailspace.trim()<CR>', opts)
-map('n', '<Leader>sw', ':set wrap!<CR>', opts)
-map('n', '<Leader>tc', ':tabclose<CR>', opts)
-map('n', '<Leader>tn', ':tabnew<CR>', opts)
-map('n', '<Leader>/', ':nohlsearch<CR>', opts)
-map('n', '<Leader>c', ':call ToggleColorColumn()<CR>', opts)
-map('n', '<leader>S', ':Pick spellsuggest<CR>', opts)
-map('n', '<leader>ov', ':exe ":silent !code %"<CR>:redraw!<CR>', opts)
-
-vim.api.nvim_set_keymap('n', '<C-p>', ':BqfToggle<CR>', { noremap = true, silent = true })
+map('n', '<Leader>m',  ':CtrlPMRUFiles<CR>',             { noremap = true, silent = true, desc = "Browse MRU files" })
+map('n', '<Leader>st', ':lua MiniTrailspace.trim()<CR>', { noremap = true, silent = true, desc = "Trim trailing spaces" })
+map('n', '<Leader>sw', ':set wrap!<CR>',                 { noremap = true, silent = true, desc = "Toggle wrap" })
+map('n', '<Leader>tc', ':tabclose<CR>',                  { noremap = true, silent = true, desc = "Tab close" })
+map('n', '<Leader>tn', ':tabnew<CR>',                    { noremap = true, silent = true, desc = "Tab new" })
+map('n', '<Leader>/',  ':nohlsearch<CR>',                { noremap = true, silent = true, desc = "Clear search term" })
+map('n', '<Leader>c',  ':call ToggleColorColumn()<CR>',  { noremap = true, silent = true, desc = "Toggle 100 collumn marker" })
+map('n', 'z=',         ':Pick spellsuggest<CR>',         { noremap = true, silent = true, desc = "Pick spelling suggestion" })
+map('n', '<leader>ov', ':exe ":silent !code %"<CR>',     { noremap = true, silent = true, desc = "Open in VS-Code" })
 
 -- Remap jj to <Esc> in insert mode
-map('i', 'jj', '<Esc>', {noremap = true})
+map('i',  'jj',         '<Esc>',                    {noremap = true})
 
 -- Paste from clipboard in insert mode
-map('i', '<S-Insert>', '<C-R>+', opts)
-mapf('c', '<C-v>', '<C-R>+')
-
--- Replace the selection with the buffer
-map('v', 'r', '"_dp', opts)
+map('i',  '<S-Insert>', '<C-R>+',                   opts)
+mapf('c', '<C-v>',      '<C-R>+'                        )
 
 -- Change into the black hole register to not clobber the last yank
-map('n', 'c', '"_c', opts)
+-- map('n',  'c',          '"_c',                      opts)
 
 -- Select last visual block
-map('n', 'gp', '`[v`]', opts)
+map('n',  'gp',         '`[v`]',                    opts)
 
 -- Find file under cursor in the same window
-map('n', 'gf', 'gF', opts)
+map('n',  'gf',         'gF',                       opts)
 
 -- highlight selected word
-vim.api.nvim_set_keymap('v', '//', 'y/\\V<C-R>"<CR>', { noremap = true, silent = true })
-
--- Replace a word with yanked text
-map('n', '<leader>rp', 'viw"0p', opts)
+map('v',  '//',         'y/\\V<C-R>"<CR>',          { noremap = true, silent = true })
 
 -- Navigate 5x faster when holding down Ctrl
-map('n', '<C-j>', '5j', { noremap = true })
-map('n', '<C-k>', '5k', { noremap = true })
-map('n', '<C-h>', '5h', { noremap = true })
-map('n', '<C-l>', '5l', { noremap = true })
-map('v', '<C-j>', '5j', { noremap = true })
-map('v', '<C-k>', '5k', { noremap = true })
-map('v', '<C-h>', '5h', { noremap = true })
-map('v', '<C-l>', '5l', { noremap = true })
+map('n',  '<C-j>',      '5j',                       { noremap = true })
+map('n',  '<C-k>',      '5k',                       { noremap = true })
+map('n',  '<C-h>',      '5h',                       { noremap = true })
+map('n',  '<C-l>',      '5l',                       { noremap = true })
+map('v',  '<C-j>',      '5j',                       { noremap = true })
+map('v',  '<C-k>',      '5k',                       { noremap = true })
+map('v',  '<C-h>',      '5h',                       { noremap = true })
+map('v',  '<C-l>',      '5l',                       { noremap = true })
 
 -- Window navigation
-map('n', '<A-k>', ':wincmd k<CR>', opts)
-map('n', '<A-j>', ':wincmd j<CR>', opts)
-map('n', '<A-h>', ':wincmd h<CR>', opts)
-map('n', '<A-l>', ':wincmd l<CR>', opts)
-map('t', '<A-k>', '<C-\\><C-N>:wincmd k<CR>', opts)
-map('t', '<A-j>', '<C-\\><C-N>:wincmd j<CR>', opts)
-map('t', '<A-h>', '<C-\\><C-N>:wincmd h<CR>', opts)
-map('t', '<A-l>', '<C-\\><C-N>:wincmd l<CR>', opts)
-
--- To map <Esc> to exit terminal-mode
-map('t', '<Esc>', '<C-\\><C-n>', opts)
+map('n',  '<A-k>',      ':wincmd k<CR>',            opts)
+map('n',  '<A-j>',      ':wincmd j<CR>',            opts)
+map('n',  '<A-h>',      ':wincmd h<CR>',            opts)
+map('n',  '<A-l>',      ':wincmd l<CR>',            opts)
+map('t',  '<A-k>',      '<C-\\><C-N>:wincmd k<CR>', opts)
+map('t',  '<A-j>',      '<C-\\><C-N>:wincmd j<CR>', opts)
+map('t',  '<A-h>',      '<C-\\><C-N>:wincmd h<CR>', opts)
+map('t',  '<A-l>',      '<C-\\><C-N>:wincmd l<CR>', opts)
 
 -- Resize windows
-map('n', '<S-k>', ':resize +5<CR>', opts)
-map('n', '<S-j>', ':resize -5<CR>', opts)
-map('n', '<S-l>', ':vertical resize +5<CR>', opts)
-map('n', '<S-h>', ':vertical resize -5<CR>', opts)
+map('n',  '<S-k>',      ':resize +5<CR>',           opts)
+map('n',  '<S-j>',      ':resize -5<CR>',           opts)
+map('n',  '<S-l>',      ':vertical resize +5<CR>',  opts)
+map('n',  '<S-h>',      ':vertical resize -5<CR>',  opts)
+
+-- To map <Esc> to exit terminal-mode
+map('t',  '<Esc>',      '<C-\\><C-n>',              opts)
 
 -- Go to previous visited locations
-map('n', '<C-t>', '<C-o>', opts)
-map('n', '<A-Left>', '<C-o>', opts)
-map('n', '<A-Right>', '<C-i>', opts)
+map('n',  '<C-t>',      '<C-o>',                    opts)
+map('n',  '<A-Left>',   '<C-o>',                    opts)
+map('n',  '<A-Right>',  '<C-i>',                    opts)
+
 
 -- Buffer navigation
-map('n', ']b', ':bnext<CR>', opts)
-map('n', '[b', ':bprevious<CR>', opts)
-
-map('n', ']t', ':tabnext<CR>', opts)
-map('n', '[t', ':tabprevious<CR>', opts)
-
-map('n', ']l', ':lnext<CR>', opts)
-map('n', '[l', ':lprev<CR>', opts)
-map('n', '<C-Down>', ']c', opts)
-map('n', '<C-Up>', '[c', opts)
+map('n', '<C-Down>', ']c',               opts)
+map('n', '<C-Up>',   '[c',               opts)
+map('n', ']t',       ':tabnext<CR>',     opts)
+map('n', '[t',       ':tabprevious<CR>', opts)
 
 -- Faster indentation
-map('n', '>', '>>', opts)
-map('n', '<', '<<', opts)
+map('n',  '>',          '>>',                       opts)
+map('n',  '<',          '<<',                       opts)
 
 -- F* mappings
-map('n', '<F2>', ':cprevious<CR>', opts)
-map('n', '<F3>', ':cnext<CR>', opts)
-map('n', '<F10>', ':call ToggleNumber()<CR>', opts)
+map('n',  '<F2>',       ':cprevious<CR>',           opts)
+map('n',  '<F3>',       ':cnext<CR>',               opts)
+map('n',  '<F10>',      ':call ToggleNumber()<CR>', opts)
 
 -- Play macros with Q
-map('n', 'Q', '@a', opts)
-map('v', 'Q', ':norm @a<CR>', opts)
-map('n', 'qq', 'ZZ<CR>', opts)
+map('n',  'Q',          '@a',                       opts)
+map('v',  'Q',          ':norm @a<CR>',             opts)
+map('n',  'qq',         'ZZ<CR>',                   opts)
 
 -- Search but don't jump to the next word
-map('n', '*', '*``', opts)
+map('n',  '*',          '*``',                      opts)
 
 -- Fix for legacy vi inconsistency
-map('n', 'Y', 'y$', opts)
+map('n',  'Y',          'y$',                       opts)
 
 -- Remap VIM 0 to first non-blank character
-map('n', '0', '^', opts)
+map('n',  '0',          '^',                        opts)
 
 -- }}}
 
@@ -838,14 +786,13 @@ vim.api.nvim_create_user_command('VScratch', function() vim.cmd('vsplit') vim.cm
 -- }}}
 
 -- {{{ Auto-root
--- TODO: this does cwd I think and brakes my flow
 local augroup = vim.api.nvim_create_augroup('AutoCD', {})
 
 vim.api.nvim_create_autocmd({ 'VimEnter', 'BufEnter', 'BufReadPost' }, {
     desc = 'Automatically change current directory by matching root pattern',
     group = augroup,
     callback = function(args)
-        local root = vim.fs.root(vim.api.nvim_buf_get_name(args.buf), root_patterns)
+        local root = GetRootDir()
 
         if root ~= nil then
             vim.api.nvim_set_current_dir(root)
@@ -985,16 +932,13 @@ vim.api.nvim_create_autocmd('FileType', {pattern = 'make', command = 'setlocal n
 
 local autoswap_group = vim.api.nvim_create_augroup('AutoSwap', { clear = true })
 
--- Define the function to handle swap files
 local function AS_HandleSwapfile(filename, swapname)
-    -- If the swapfile is older than the file itself, delete the swapfile
     if vim.fn.getftime(swapname) < vim.fn.getftime(filename) then
         vim.fn.delete(swapname)
         vim.v.swapchoice = 'e'
     end
 end
 
--- Create the autocommand to call the function when a swap exists
 vim.api.nvim_create_autocmd('SwapExists', {
     group = autoswap_group,
     callback = function(args)
@@ -1005,9 +949,9 @@ vim.api.nvim_create_autocmd('SwapExists', {
 
 --{{{ Functions
 
--- TODO:: replace all roots with this
 function GetRootDir()
-    return vim.fs.root(vim.fn.expand('%:p'), root_patterns) or vim.fn.getcwd()
+  local root_patterns = {'.git', '.svn', 'util', 'plugin.xml'}
+  return vim.fs.root(vim.fn.expand('%:p'), root_patterns) or vim.fn.getcwd()
 end
 
 function PrepRgCommand(search_term)
@@ -1019,7 +963,7 @@ function PrepRgCommand(search_term)
     else
       move_to_term = '<C-Left><C-Left><C-Left><C-Left><C-Right><Right>'
     end
-    local cmd = ':Rg ' .. current_word .. ' ' .. root_dir..move_to_term
+    local cmd = ':Ack ' .. current_word .. ' ' .. root_dir..move_to_term
 
     vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(cmd, true, false, true), 'n', true)
 end
@@ -1116,6 +1060,3 @@ if vim.fn.has("win32") == 1 and vim.g.configForWork == 1 then
 end
 
 -- TODO list
---
--- [ ] remap quickfix window map for split(now on C-X)
--- [ ] add decription to maps
