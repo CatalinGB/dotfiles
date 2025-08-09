@@ -344,7 +344,7 @@ require("lazy").setup(
     "chentoast/marks.nvim",
     event = "VeryLazy",
     init = function()
-      require'marks'.setup({})
+      require('marks').setup({})
     end,
   },
   --}}}
@@ -465,7 +465,7 @@ require("lazy").setup(
   {
     -- Navigation breadcrumbs and trail tracking (currently disabled)
     "LeonHeidelbach/trailblazer.nvim",
-    enabled=false,
+    enabled = false,
     init = function()
         require("trailblazer").setup({})
     end,
