@@ -46,14 +46,14 @@ require("lazy").setup(
 
       require('mini.jump').setup()
 
-      -- TODO: seems like replacement to MRU - not really, it's project based
+      -- Project-based file visit tracking
       require('mini.visits').setup()
 
       require('mini.pick').setup()
 
       require('mini.extra').setup()
 
-      -- TODO:maye do it later
+      -- TODO: maybe do it later
       --require('mini.completion').setup()
 
       require('mini.pairs').setup()
@@ -114,7 +114,7 @@ require("lazy").setup(
       require('mini.diff').setup()
       vim.keymap.set('n', '<leader>go', ':lua MiniDiff.toggle_overlay()<CR>', { desc = 'Toggle Diff Overlay' })
 
-      -- TODO: replace tabby with this one after removing the buffers from the tab
+      -- Alternative to tabby plugin (currently using tabby.nvim)
       -- require('mini.tabline').setup({})
       vim.o.showtabline = 2
       vim.opt.sessionoptions = 'curdir,folds,globals,help,tabpages,terminal,winsize'
@@ -463,7 +463,7 @@ require("lazy").setup(
   },
 
   {
-    -- TODO: check this one, seems interesting
+    -- Navigation breadcrumbs and trail tracking (currently disabled)
     "LeonHeidelbach/trailblazer.nvim",
     enabled=false,
     init = function()
@@ -911,7 +911,7 @@ vim.opt.title = true
 vim.opt.errorformat = "%f:%l:%c:%m"
 
 -- Set dictionary
-vim.opt.dictionary:append(vim.env.HOME .. '\\words.txt')
+vim.opt.dictionary:append(vim.env.HOME .. '/words.txt')
 
 -- C indentation settings
 vim.opt.cino = vim.opt.cino + '(0'
@@ -1058,5 +1058,3 @@ if vim.fn.has("win32") == 1 and vim.g.configForWork == 1 then
   -- Work specific things
   vim.cmd('source ' .. userProfile .. '/AppData/Local/nvim/eb.lua')
 end
-
--- TODO list
